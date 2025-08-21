@@ -55,7 +55,10 @@ z-index: 9999;
 <body class="min-h-screen bg-slate-50 text-slate-800" style="font-family: 'Hanken Grotesk', sans-serif;">
   <header class="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">Cotizador Numia</h1>
+      <div class="flex items-center gap-3">
+        <img src="images/numia.png" alt="Logo Numia" class="h-10 w-auto" />
+        <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">Cotizador Numia</h1>
+      </div>
       <div class="flex items-center gap-3">
         <label class="text-sm flex items-center gap-2">Cliente
           <input id="cliente" type="text" placeholder="Nombre de cliente" class="px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -132,7 +135,9 @@ z-index: 9999;
   <footer class="max-w-7xl mx-auto px-4 pb-10 text-xs text-slate-500">
     Basado en la lista "Precios V2.pdf" provista por el cliente. Este cotizador es de ejemplo y puede ajustarse a nuevas versiones.
   </footer>
-
+  <script
+        src="https://cdn.jsdelivr.net/gh/debmedia/numiajb-widget@1.0.4/dist/build/static/js/bundle.min.js">
+    </script>
   <script>
     // ====== Datos base (extraídos del PDF) ======
     // Helper para crear items
@@ -254,7 +259,16 @@ z-index: 9999;
       // Show/hide rows based on filter
       const rows = document.querySelectorAll('.filter-named, .filter-concurrent, .filter-all');
       rows.forEach(row => {
-        if (filterType === 'all') {
+        // Las categorías específicas siempre son visibles
+        const isAlwaysVisible = row.closest('section') && 
+          (row.closest('section').querySelector('h2').textContent === CATEGORIAS[4] || // Add‑ons por hora
+           row.closest('section').querySelector('h2').textContent === CATEGORIAS[5] || // Servicios profesionales
+           row.closest('section').querySelector('h2').textContent === CATEGORIAS[6] || // Hardware — Alquiler (mensual)
+           row.closest('section').querySelector('h2').textContent === CATEGORIAS[7]);   // Paquetes con hardware
+        
+        if (isAlwaysVisible) {
+          row.style.display = 'flex';
+        } else if (filterType === 'all') {
           row.style.display = 'flex';
         } else if (filterType === 'named') {
           row.style.display = row.classList.contains('filter-named') ? 'flex' : 'none';
@@ -299,9 +313,18 @@ z-index: 9999;
           row.className = 'p-4 flex flex-col sm:flex-row sm:items-center gap-3';
           
           // Add data attributes for filtering
-          const isNamed = it.name.toLowerCase().includes('named');
-          const isConcurrent = it.name.toLowerCase().includes('concurrent');
-          const filterClass = isNamed ? 'filter-named' : (isConcurrent ? 'filter-concurrent' : 'filter-all');
+          // Las categorías específicas siempre son visibles
+          const isAlwaysVisible = cat === CATEGORIAS[4] || // Add‑ons por hora
+                                  cat === CATEGORIAS[5] || // Servicios profesionales
+                                  cat === CATEGORIAS[6] || // Hardware — Alquiler (mensual)
+                                  cat === CATEGORIAS[7];   // Paquetes con hardware
+          
+          let filterClass = 'filter-all';
+          if (!isAlwaysVisible) {
+            const isNamed = it.name.toLowerCase().includes('named');
+            const isConcurrent = it.name.toLowerCase().includes('concurrent');
+            filterClass = isNamed ? 'filter-named' : (isConcurrent ? 'filter-concurrent' : 'filter-all');
+          }
           
           row.className += ` ${filterClass}`;
           row.innerHTML = `
@@ -673,12 +696,36 @@ z-index: 9999;
         onetime = 0;
       }
 
-      // Header
-      doc.setFontSize(18);
-      doc.text('Cotización Numia', marginX, marginY);
-      doc.setFontSize(11);
-      doc.text(`Fecha: ${fecha}`, marginX, marginY + 18);
-      doc.text(`Cliente: ${cliente}`, marginX, marginY + 34);
+      // Header con logo
+      try {
+        // Agregar logo de Numia
+        const logoImg = new Image();
+        logoImg.src = 'images/numia.png';
+        logoImg.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = logoImg.width;
+          canvas.height = logoImg.height;
+          ctx.drawImage(logoImg, 0, 0);
+          
+          const logoDataUrl = canvas.toDataURL('image/png');
+          doc.addImage(logoDataUrl, 'PNG', marginX, marginY - 15, 40, 20);
+          
+          // Continuar con el resto del PDF
+          doc.setFontSize(18);
+          doc.text('Cotización Numia', marginX + 50, marginY);
+          doc.setFontSize(11);
+          doc.text(`Fecha: ${fecha}`, marginX + 50, marginY + 18);
+          doc.text(`Cliente: ${cliente}`, marginX + 50, marginY + 34);
+        };
+      } catch (e) {
+        // Si falla el logo, continuar sin él
+        doc.setFontSize(18);
+        doc.text('Cotización Numia', marginX, marginY);
+        doc.setFontSize(11);
+        doc.text(`Fecha: ${fecha}`, marginX, marginY + 18);
+        doc.text(`Cliente: ${cliente}`, marginX, marginY + 34);
+      }
 
       // Tabla
       doc.autoTable({
@@ -756,16 +803,16 @@ z-index: 9999;
 
   <div class="JB" >
 
-  <script
-        src="https://cdn.jsdelivr.net/gh/debmedia/numiajb-widget@1.0.4/dist/build/static/js/bundle.min.js">
-    </script>
+
     <journey-builder-chat
         window_title="Asistente de cotizaciones"
         flow_id="dbd4b2c7-6a04-46a3-b397-7ac27e62cf14"
         host_url="https://api.journey-builder.desa.numia.co"
-        api_key="sk-rDCkKbYrN6qVvfebL5-2pD9gvmR4WuKyVqHevdqZyXU"
+        api_key="sk-Nvozomq1VxUSZO3z5xPLlbuHDeas5ytE83XnH5EG0Zo"
                 chat_position='top-left'>
     </journey-builder-chat>
+
+
 
     <!--journey-builder-chat
 
