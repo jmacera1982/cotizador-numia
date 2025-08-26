@@ -423,25 +423,19 @@ z-index: 9999;
             filterClass = isNamed ? 'filter-named' : (isConcurrent ? 'filter-concurrent' : 'filter-all');
           }
           
-          // Configuración especial para pkg_ilimitado
-          const isPkgIlimitado = it.id === 'pkg_ilimitado';
-          const minValue = isPkgIlimitado ? 0 : 0; // Permitir edición libre
-          const inputClass = isPkgIlimitado ? 'w-24 px-3 py-2 rounded-lg border border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-50' : 'w-24 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500';
+          const inputClass = 'w-24 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500';
           
-          // Debug: verificar si se está aplicando la configuración especial
-          if (isPkgIlimitado) {
-            console.log('pkg_ilimitado encontrado:', it.id, 'categoría:', cat);
-          }
+
           
           row.className += ` ${filterClass}`;
           row.innerHTML = `
             <div class="flex-1">
               <div class="font-medium">${it.name}</div>
-              <div class="text-xs text-slate-500">${it.charge === 'monthly' ? 'Mensual' : (it.charge === 'onetime' ? 'Único' : (it.charge === 'hourly-monthly' ? 'Por hora (mensual)' : 'Por hora (único)'))} · ${fmt(it.price)} / ${it.unit}${it.notes ? ' · ' + it.notes : ''}${it.flags.includes('subject') ? ' · Sujeto a aprobación' : ''}${isPkgIlimitado ? ' · <span class="text-orange-600 font-medium">Solo 0 o >199 sucursales</span>' : ''}</div>
+              <div class="text-xs text-slate-500">${it.charge === 'monthly' ? 'Mensual' : (it.charge === 'onetime' ? 'Único' : (it.charge === 'hourly-monthly' ? 'Por hora (mensual)' : 'Por hora (único)'))} · ${fmt(it.price)} / ${it.unit}${it.notes ? ' · ' + it.notes : ''}${it.flags.includes('subject') ? ' · Sujeto a aprobación' : ''}</div>
             </div>
             <div class="flex items-center gap-2">
               <label class="text-xs text-slate-500">Cantidad</label>
-              <input type="number" min="${minValue}" step="1" value="0" data-id="${it.id}" class="${inputClass}" ${isPkgIlimitado ? 'data-min-200="true"' : ''} />
+              <input type="number" value="0" data-id="${it.id}" class="${inputClass}" />
             </div>`;
           list.appendChild(row);
         });
@@ -537,42 +531,31 @@ z-index: 9999;
           
           // Validación especial para pkg_ilimitado
           if (id === 'pkg_ilimitado') {
-            console.log('Validando pkg_ilimitado, valor:', val);
-            
-            if (val > 0 && val <= 199) {
-              console.log('Valor inválido detectado, reseteando a 0');
-              // Solo permitir 0 o > 199
-              inp.value = 0;
-              inp.classList.add('border-red-500', 'bg-red-100');
-              
-              // Crear o actualizar mensaje de advertencia
-              let warningMsg = inp.parentNode.querySelector('.warning-msg');
-              if (!warningMsg) {
-                warningMsg = document.createElement('div');
-                warningMsg.className = 'warning-msg text-xs text-red-600 font-medium mt-1';
-                inp.parentNode.appendChild(warningMsg);
+            if (val > 0 && val < 200) {
+              // Mostrar mensaje de error para valores entre 1-199
+              let errorMsg = inp.parentNode.querySelector('.error-msg');
+              if (!errorMsg) {
+                errorMsg = document.createElement('div');
+                errorMsg.className = 'error-msg text-xs text-red-600 font-medium mt-1';
+                inp.parentNode.appendChild(errorMsg);
               }
-              warningMsg.textContent = '⚠️ Solo se permiten 0 o valores mayores a 199';
-              warningMsg.style.display = 'block';
+              errorMsg.textContent = '❌ Error: Solo se permiten 0 o valores mayores o iguales a 200';
+              errorMsg.style.display = 'block';
               
-              // Ocultar mensaje después de 2 segundos
-              setTimeout(() => {
-                inp.classList.remove('border-red-500', 'bg-red-100');
-                if (warningMsg) {
-                  warningMsg.style.display = 'none';
-                }
-              }, 2000);
-            } else if (val >= 200) {
-              console.log('Valor válido >= 200, ocultando mensaje');
-              // Ocultar mensaje de advertencia si es >= 200
-              inp.classList.remove('border-red-500', 'bg-red-100');
-              const warningMsg = inp.parentNode.querySelector('.warning-msg');
-              if (warningMsg) {
-                warningMsg.style.display = 'none';
+              // Agregar estilo de error al input
+              inp.classList.add('border-red-500', 'bg-red-50');
+            } else {
+              // Ocultar mensaje de error para valores válidos (0 o >= 200)
+              const errorMsg = inp.parentNode.querySelector('.error-msg');
+              if (errorMsg) {
+                errorMsg.style.display = 'none';
               }
+              
+              // Remover estilo de error del input
+              inp.classList.remove('border-red-500', 'bg-red-50');
             }
           }
-          
+
           if (val > 0) state.qty.set(id, val); else state.qty.delete(id);
           recompute();
         });
