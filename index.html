@@ -201,23 +201,23 @@ z-index: 9999;
       'Sucursal virtual — Usuarios concurrentes',
       'Add‑ons por sucursal / compañía',
       'Add‑ons por hora',
+      'Journey Builder',
       'Servicios profesionales',
       'Hardware — Alquiler (mensual)',
             'Paquetes con alquiler dehardware (mensual, sujeto a aprobación)',
-      'Paquetes de hardware',
-      'Journey Builder'
+      'Paquetes de hardware'
     ];
 
     const CATALOGO = [
       // Journey Builder - Paquetes
-      item('jb_poc', CATEGORIAS[12], 'Journey Builder — POC', 0, 'monthly', {license:false, notes:'Paquete POC'}),
-      item('jb_starter', CATEGORIAS[12], 'Journey Builder — Starter', 0, 'monthly', {license:false, notes:'Paquete Starter'}),
-      item('jb_pro_plus', CATEGORIAS[12], 'Journey Builder — Pro+', 0, 'monthly', {license:false, notes:'Paquete Pro+'}),
-      item('jb_enterprise', CATEGORIAS[12], 'Journey Builder — Enterprise', 0, 'monthly', {license:false, notes:'Paquete Enterprise'}),
-      item('jb_custom_1', CATEGORIAS[12], 'Journey Builder — Custom +1', 0, 'monthly', {license:false, notes:'Paquete Custom +1'}),
-      item('jb_custom_2', CATEGORIAS[12], 'Journey Builder — Custom +2', 0, 'monthly', {license:false, notes:'Paquete Custom +2'}),
-      item('jb_custom_3', CATEGORIAS[12], 'Journey Builder — Custom +3', 0, 'monthly', {license:false, notes:'Paquete Custom +3'}),
-      item('jb_custom_n', CATEGORIAS[12], 'Journey Builder — Custom N', 0, 'monthly', {license:false, notes:'Paquete Custom N'}),
+      item('jb_poc', CATEGORIAS[8], 'Journey Builder — POC', 0, 'monthly', {license:false, notes:'Paquete POC'}),
+      item('jb_starter', CATEGORIAS[8], 'Journey Builder — Starter', 0, 'monthly', {license:false, notes:'Paquete Starter'}),
+      item('jb_pro_plus', CATEGORIAS[8], 'Journey Builder — Pro+', 0, 'monthly', {license:false, notes:'Paquete Pro+'}),
+      item('jb_enterprise', CATEGORIAS[8], 'Journey Builder — Enterprise', 0, 'monthly', {license:false, notes:'Paquete Enterprise'}),
+      item('jb_custom_1', CATEGORIAS[8], 'Journey Builder — Custom +1', 0, 'monthly', {license:false, notes:'Paquete Custom +1'}),
+      item('jb_custom_2', CATEGORIAS[8], 'Journey Builder — Custom +2', 0, 'monthly', {license:false, notes:'Paquete Custom +2'}),
+      item('jb_custom_3', CATEGORIAS[8], 'Journey Builder — Custom +3', 0, 'monthly', {license:false, notes:'Paquete Custom +3'}),
+      item('jb_custom_n', CATEGORIAS[8], 'Journey Builder — Custom N', 0, 'monthly', {license:false, notes:'Paquete Custom N'}),
       
       // Sucursales físicas — Licencias (mensual)
       item('phys_5_named', CATEGORIAS[0], 'Numia App — Hasta 5 usuarios (Named)', 80, 'monthly', {license:true, notes:'Incluye 2 licencias de Numia Sign por sucursal; Trámites ilimitados; Hasta 5 funcionarios'}),
@@ -270,18 +270,18 @@ z-index: 9999;
       item('va_cobrowse',       CATEGORIAS[7], 'Co‑Browsing — Paquete de 20 Horas',29,'hourly-monthly', {license:false, notes:'Requiere ajuste en la web del cliente para conectar con asesor'}),
      
       // Servicios profesionales (one-time)
-      item('va_dev',            CATEGORIAS[8], 'Hora de desarrollo — por hora (mín. paquete de 50h)',50,'onetime'),
+      item('va_dev',            CATEGORIAS[9], 'Hora de desarrollo — por hora (mín. paquete de 50h)',50,'onetime'),
 
-      item('svc_param_5',   CATEGORIAS[8], 'Parametrización hasta 5 sucursales físicas (10h, uso hasta 1 mes)',700,'onetime'),
-      item('svc_param_25',  CATEGORIAS[8], 'Parametrización hasta 25 sucursales físicas (50h, uso hasta 2 meses)',3500,'onetime'),
-      item('svc_param_100', CATEGORIAS[8], 'Parametrización hasta 100 sucursales físicas (300h, uso hasta 4 meses)',21000,'onetime'),
+      item('svc_param_5',   CATEGORIAS[9], 'Parametrización hasta 5 sucursales físicas (10h, uso hasta 1 mes)',700,'onetime'),
+      item('svc_param_25',  CATEGORIAS[9], 'Parametrización hasta 25 sucursales físicas (50h, uso hasta 2 meses)',3500,'onetime'),
+      item('svc_param_100', CATEGORIAS[9], 'Parametrización hasta 100 sucursales físicas (300h, uso hasta 4 meses)',21000,'onetime'),
 
       // Implementación JB (one-time) - $50 por hora
-      item('jb_impl_setup',     CATEGORIAS[8], 'Implementación JB — Setup Pack (8 horas)',400,'onetime', {license:false, notes:'Implementación JB - Setup Pack'}),
-      item('jb_impl_basic',     CATEGORIAS[8], 'Implementación JB — Basic (16 horas)',800,'onetime', {license:false, notes:'Implementación JB - Basic'}),
-      item('jb_impl_extended',  CATEGORIAS[8], 'Implementación JB — Extended (24 horas)',1200,'onetime', {license:false, notes:'Implementación JB - Extended'}),
-      item('jb_impl_full',      CATEGORIAS[8], 'Implementación JB — Full (40 horas)',2000,'onetime', {license:false, notes:'Implementación JB - Full'}),
-      item('jb_impl_custom',    CATEGORIAS[8], 'Implementación JB — Custom (80 horas)',4000,'onetime', {license:false, notes:'Implementación JB - Custom'}),
+      item('jb_impl_setup',     CATEGORIAS[9], 'Implementación JB — Setup Pack (8 horas)',400,'onetime', {license:false, notes:'Implementación JB - Setup Pack'}),
+      item('jb_impl_basic',     CATEGORIAS[9], 'Implementación JB — Basic (16 horas)',800,'onetime', {license:false, notes:'Implementación JB - Basic'}),
+      item('jb_impl_extended',  CATEGORIAS[9], 'Implementación JB — Extended (24 horas)',1200,'onetime', {license:false, notes:'Implementación JB - Extended'}),
+      item('jb_impl_full',      CATEGORIAS[9], 'Implementación JB — Full (40 horas)',2000,'onetime', {license:false, notes:'Implementación JB - Full'}),
+      item('jb_impl_custom',    CATEGORIAS[9], 'Implementación JB — Custom (80 horas)',4000,'onetime', {license:false, notes:'Implementación JB - Custom'}),
 
       // Hardware — Compra (one-time)
       item('hw_buy_tablet',  CATEGORIAS[9], 'Tótem Tablet — COMPRA',1500,'onetime', {notes:'Soporte mensual de HW opcional $50/disp.'}),
@@ -386,10 +386,17 @@ z-index: 9999;
           if (isCustomPackage) {
             // Show the custom executions field in the main section
             if (customExecutionsContainer) {
-              customExecutionsContainer.style.display = 'flex';
+              customExecutionsContainer.style.display = 'block';
             }
             if (customExecutionsMain) {
-              customExecutionsMain.value = package.executions;
+              // Only set the value if it's empty or different
+              if (!customExecutionsMain.value || customExecutionsMain.value === '0') {
+                customExecutionsMain.value = package.executions;
+              }
+              console.log('Executions input available, current value:', customExecutionsMain.value);
+              // Ensure the input is enabled and editable
+              customExecutionsMain.disabled = false;
+              customExecutionsMain.readOnly = false;
             }
             // Show executions as text in details
             executionsElement.textContent = formatNumber(package.executions);
@@ -425,6 +432,7 @@ z-index: 9999;
           // Calculate tokens cost based on selected model and BYO LLM checkbox
           const selectedModel = document.getElementById('jb_model_select').value;
           const byoLLM = document.getElementById('jb_byo_llm').checked;
+          console.log('Recalculating with model:', selectedModel, 'BYO LLM:', byoLLM);
           let tokensCost = 0;
           let originalTokensCost = 0; // Keep original cost for fee calculation
           
@@ -460,6 +468,9 @@ z-index: 9999;
           
           // Section is always visible now, no need to remove hidden class
           console.log('Package details updated successfully');
+          
+          // Update flows table
+          updateFlowsTable();
         } else {
           console.error('Some elements not found');
         }
@@ -565,14 +576,83 @@ z-index: 9999;
       updateRecurringCostFromFee(tokensCost, byoLLM);
     }
 
+    // Function to update flows table calculations
+    function updateFlowsTable() {
+      console.log('updateFlowsTable called');
+      const selectedPackage = document.getElementById('jb_package_select')?.value;
+      console.log('Selected package:', selectedPackage);
+      
+      if (!selectedPackage || !JB_PACKAGES[selectedPackage]) {
+        // Hide or reset flows table if no package selected
+        const flowsTable = document.getElementById('jb_flows_table');
+        console.log('No package selected, hiding flows table:', flowsTable);
+        if (flowsTable) {
+          flowsTable.style.display = 'none';
+        }
+        return;
+      }
+      
+      const package = JB_PACKAGES[selectedPackage];
+      const isCustomPackage = selectedPackage.startsWith('jb_custom_');
+      
+      // Get actual executions (from custom input if it's a custom package)
+      let actualExecutions = package.executions;
+      if (isCustomPackage) {
+        const customExecutionsMain = document.getElementById('jb_custom_executions_main');
+        if (customExecutionsMain && customExecutionsMain.value) {
+          actualExecutions = parseInt(customExecutionsMain.value) || package.executions;
+        }
+      }
+      
+      // Flow execution values (fixed)
+      const flows = {
+        knowledge: 18,
+        appointment: 7,
+        virtual: 7,
+        combined: 25
+      };
+      
+      // Calculate conversations for each flow
+      const knowledgeConversations = Math.floor(actualExecutions / flows.knowledge);
+      const appointmentConversations = Math.floor(actualExecutions / flows.appointment);
+      const virtualConversations = Math.floor(actualExecutions / flows.virtual);
+      const combinedConversations = Math.floor(actualExecutions / flows.combined);
+      
+      // Update the table
+      const knowledgeElement = document.getElementById('jb_flows_knowledge');
+      const appointmentElement = document.getElementById('jb_flows_appointment');
+      const virtualElement = document.getElementById('jb_flows_virtual');
+      const combinedElement = document.getElementById('jb_flows_combined');
+      
+      if (knowledgeElement) knowledgeElement.textContent = knowledgeConversations.toLocaleString();
+      if (appointmentElement) appointmentElement.textContent = appointmentConversations.toLocaleString();
+      if (virtualElement) virtualElement.textContent = virtualConversations.toLocaleString();
+      if (combinedElement) combinedElement.textContent = combinedConversations.toLocaleString();
+      
+      // Show the flows table
+      const flowsTable = document.getElementById('jb_flows_table');
+      console.log('Flows table element found:', flowsTable);
+      if (flowsTable) {
+        flowsTable.style.display = 'block';
+        console.log('Flows table displayed');
+      } else {
+        console.error('Flows table element not found!');
+      }
+      
+      console.log('Flows table updated with executions:', actualExecutions);
+    }
+
     function getCurrentJBValues() {
       const selectedPackage = document.getElementById('jb_package_select')?.value;
       const selectedModel = document.getElementById('jb_model_select')?.value;
       const byoLLM = document.getElementById('jb_byo_llm')?.checked || false;
       
-      if (!selectedPackage || !selectedModel || !JB_PACKAGES[selectedPackage] || !JB_MODELS[selectedModel]) {
+      if (!selectedPackage || !JB_PACKAGES[selectedPackage]) {
         return null;
       }
+      
+      // If no model is selected, use a default model for calculations
+      const modelToUse = selectedModel && JB_MODELS[selectedModel] ? selectedModel : 'Claude 3.5 Sonnet';
       
       const package = JB_PACKAGES[selectedPackage];
       const isCustomPackage = selectedPackage.startsWith('jb_custom_');
@@ -589,7 +669,7 @@ z-index: 9999;
       }
       
       const totalCost = actualExecutions * package.execCost;
-      const originalTokensCost = (actualTokens / 1000) * JB_MODELS[selectedModel];
+      const originalTokensCost = (actualTokens / 1000) * JB_MODELS[modelToUse];
       const tokensCost = byoLLM ? 0 : originalTokensCost;
       
       return {
@@ -692,6 +772,18 @@ z-index: 9999;
       const numiaFeePercentInput = document.getElementById('jb_numia_fee_percent');
       const byoLLMCheckbox = document.getElementById('jb_byo_llm');
       
+      // Hide the executions field when no package is selected
+      const executionsContainer = document.getElementById('jb_custom_executions_container');
+      if (executionsContainer) {
+        executionsContainer.style.display = 'none';
+      }
+      
+      // Hide the flows table when no package is selected
+      const flowsTable = document.getElementById('jb_flows_table');
+      if (flowsTable) {
+        flowsTable.style.display = 'none';
+      }
+      
       if (tokensElement && executionsElement && totalCostElement && tokensCostElement && numiaFeeAmountElement && recurringCostElement) {
         tokensElement.textContent = '-';
         executionsElement.textContent = '-';
@@ -740,11 +832,10 @@ z-index: 9999;
         // Las categorías específicas siempre son visibles
         const isAlwaysVisible = row.closest('section') && 
           (row.closest('section').querySelector('h2').textContent === CATEGORIAS[6] || // Add‑ons por hora
-           row.closest('section').querySelector('h2').textContent === CATEGORIAS[8] || // Servicios profesionales
-           row.closest('section').querySelector('h2').textContent === CATEGORIAS[9] || // Hardware — Compra (one-time)
+           row.closest('section').querySelector('h2').textContent === CATEGORIAS[9] || // Servicios profesionales
            row.closest('section').querySelector('h2').textContent === CATEGORIAS[10] || // Hardware — Alquiler (mensual)
-           row.closest('section').querySelector('h2').textContent === CATEGORIAS[11] || // Paquetes con hardware
-           row.closest('section').querySelector('h2').textContent === CATEGORIAS[12]);   // Paquetes con hardware (continuación)
+           row.closest('section').querySelector('h2').textContent === CATEGORIAS[11] || // Paquetes con alquiler dehardware
+           row.closest('section').querySelector('h2').textContent === CATEGORIAS[12]);   // Paquetes de hardware
         
         if (isAlwaysVisible) {
           row.style.display = 'flex';
@@ -846,7 +937,7 @@ z-index: 9999;
         head.className = 'px-5 py-4 border-b border-slate-200 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors';
         
         // Special styling for Journey Builder category
-        const isJourneyBuilder = cat === CATEGORIAS[12];
+        const isJourneyBuilder = cat === CATEGORIAS[8];
         const headerClass = isJourneyBuilder ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200' : '';
         const titleClass = isJourneyBuilder ? 'text-blue-800' : '';
         
@@ -873,7 +964,7 @@ z-index: 9999;
         const items = byCat(cat);
         
                 // Special handling for Journey Builder category
-        if (cat === CATEGORIAS[12]) {
+        if (cat === CATEGORIAS[8]) {
           // Add note
           const noteDiv = document.createElement('div');
           noteDiv.className = 'p-4 bg-blue-50 border-b border-blue-200 text-sm text-blue-700';
@@ -929,12 +1020,43 @@ z-index: 9999;
                   <span class="text-xs text-blue-600">%</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2" id="jb_custom_executions_container" style="display: none;">
-                <label class="text-xs text-slate-500">Cantidad de Ejecuciones</label>
-                <input type="number" id="jb_custom_executions_main" min="1" step="1" class="w-32 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
-              </div>
             </div>`;
           list.appendChild(row);
+          
+          // Add the executions field as a separate element
+          const executionsRow = document.createElement('div');
+          executionsRow.id = 'jb_custom_executions_container';
+          executionsRow.className = 'mt-3';
+          executionsRow.style.display = 'none';
+          executionsRow.innerHTML = `
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500 font-medium">Cantidad de Ejecuciones</label>
+              <input type="number" id="jb_custom_executions_main" min="1" step="1" class="w-32 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+              <span class="text-xs text-slate-400">(Solo visible para paquetes Custom)</span>
+            </div>
+          `;
+          list.appendChild(executionsRow);
+          
+          // Simple event listener for executions input - just for basic functionality
+          setTimeout(() => {
+            const executionsInput = document.getElementById('jb_custom_executions_main');
+            if (executionsInput) {
+              // Remove any existing event listeners by cloning the element
+              const newInput = executionsInput.cloneNode(true);
+              executionsInput.parentNode.replaceChild(newInput, executionsInput);
+              
+              // Add a simple event listener that doesn't interfere with editing
+              newInput.addEventListener('input', () => {
+                console.log('Executions value changed to:', newInput.value);
+                // Update flows table when executions change
+                updateFlowsTable();
+                // Update the summary section
+                recompute();
+              });
+              
+              console.log('Simple event listener added to executions input');
+            }
+          }, 100);
           
           // Package details section (always visible) - now inside the category
           const detailsRow = document.createElement('div');
@@ -978,7 +1100,7 @@ z-index: 9999;
             </div>
           `;
           list.appendChild(detailsRow);
-        } else if (cat === CATEGORIAS[8]) {
+        } else if (cat === CATEGORIAS[9]) {
           // Special handling for Servicios profesionales category
           
           // Separate JB Implementation items from other professional services
@@ -1048,8 +1170,8 @@ z-index: 9999;
           // Add data attributes for filtering
           // Las categorías específicas siempre son visibles (CORREGIDO)
           const isAlwaysVisible = cat === CATEGORIAS[6] || // Add‑ons por hora
-                                  cat === CATEGORIAS[8] || // Servicios profesionales
-                                  cat === CATEGORIAS[9] || // Hardware — Compra (one-time)
+                                  cat === CATEGORIAS[8] || // Journey Builder
+                                  cat === CATEGORIAS[9] || // Servicios profesionales
                                   cat === CATEGORIAS[10] || // Hardware — Alquiler (mensual)
                                     cat === CATEGORIAS[11];   // Paquetes con hardware
           
@@ -1077,6 +1199,59 @@ z-index: 9999;
         }
 
         sec.appendChild(list);
+        
+        // Add flows table for Journey Builder category
+        if (cat === CATEGORIAS[8]) {
+          const flowsRow = document.createElement('div');
+          flowsRow.id = 'jb_flows_table';
+          flowsRow.className = 'p-4 bg-slate-50 border-t border-slate-200';
+         // flowsRow.style.display = 'none'; // Hide by default
+          console.log('Creating flows table for Journey Builder category');
+          flowsRow.innerHTML = `
+            <div class="w-full">
+              <div class="text-sm font-medium text-slate-800 mb-3">Average scope of executions per flow</div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-slate-100">
+                      <th class="px-3 py-2 text-left font-medium text-slate-700">Flujo</th>
+                      <th class="px-3 py-2 text-center font-medium text-slate-700">Ejecuciones</th>
+                      <th class="px-3 py-2 text-center font-medium text-slate-700">Conversaciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-slate-200">
+                      <td class="px-3 py-2 font-medium text-slate-800">Knowledge</td>
+                      <td class="px-3 py-2 text-center text-slate-600">18</td>
+                      <td class="px-3 py-2 text-center font-semibold text-blue-600" id="jb_flows_knowledge">-</td>
+                    </tr>
+                    <tr class="border-b border-slate-200">
+                      <td class="px-3 py-2 font-medium text-slate-800">Appointment</td>
+                      <td class="px-3 py-2 text-center text-slate-600">7</td>
+                      <td class="px-3 py-2 text-center font-semibold text-blue-600" id="jb_flows_appointment">-</td>
+                    </tr>
+                    <tr class="border-b border-slate-200">
+                      <td class="px-3 py-2 font-medium text-slate-800">Virtual Shift</td>
+                      <td class="px-3 py-2 text-center text-slate-600">7</td>
+                      <td class="px-3 py-2 text-center font-semibold text-blue-600" id="jb_flows_virtual">-</td>
+                    </tr>
+                    <tr class="bg-slate-50">
+                      <td class="px-3 py-2 font-medium text-slate-800">Knowledge + (App/Virtual)</td>
+                      <td class="px-3 py-2 text-center text-slate-600">25</td>
+                      <td class="px-3 py-2 text-center font-semibold text-blue-600" id="jb_flows_combined">-</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="text-xs text-slate-500 mt-2">
+                Las conversaciones se calculan dividiendo las ejecuciones del paquete seleccionado entre las ejecuciones del flujo.
+              </div>
+            </div>
+          `;
+          sec.appendChild(flowsRow);
+          console.log('Flows table added to section:', flowsRow);
+        }
+        
         cont.appendChild(sec);
         
         // Add expand/collapse functionality
@@ -1206,6 +1381,18 @@ z-index: 9999;
           const selectedValue = jbSelect.value;
           console.log('Combobox changed to:', selectedValue);
           
+          // Show/hide the executions field based on whether the package starts with "custom"
+          const executionsContainer = document.getElementById('jb_custom_executions_container');
+          if (executionsContainer) {
+            if (selectedValue && selectedValue.startsWith('jb_custom_')) {
+              executionsContainer.style.display = 'block';
+              console.log('Showing executions field for custom package');
+            } else {
+              executionsContainer.style.display = 'none';
+              console.log('Hiding executions field for non-custom package');
+            }
+          }
+          
           // Clear any previous Journey Builder selections
           state.qty.forEach((value, key) => {
             if (key.startsWith('jb_')) {
@@ -1245,6 +1432,12 @@ z-index: 9999;
           if (selectedPackage) {
             console.log('Updating package details with new model selection');
             showJBPackageDetails(selectedPackage);
+            
+            // Also update flows table when model changes
+            updateFlowsTable();
+            
+            // Update the summary section
+            recompute();
           }
         });
       } else {
@@ -1270,6 +1463,9 @@ z-index: 9999;
             
             updateNumiaFee(displayedTokensCost, byoLLM);
             console.log('Numia Fee updated due to percentage change');
+            
+            // Update the summary section
+            recompute();
           }
         });
       } else {
@@ -1291,6 +1487,9 @@ z-index: 9999;
             // Update package details with new BYO LLM state
             showJBPackageDetails(selectedPackage);
             console.log('Package details updated due to BYO LLM change');
+            
+            // Update the summary section
+            recompute();
           }
         });
       } else {
