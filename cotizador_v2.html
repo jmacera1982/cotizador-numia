@@ -189,7 +189,8 @@
         nombre: 'Usuario Individual',
         descripcion: 'Perfecto para profesionales independientes',
         usuarios: 1,
-        precio: 299,
+        precio: 0,
+        descuento:0,
         color: 'from-green-500 to-emerald-600',
         icono: '👤'
       },
@@ -198,7 +199,8 @@
         nombre: 'Sucursal Pequeña',
         descripcion: 'Hasta 5 personas',
         usuarios: 5,
-        precio: 899,
+        precio: 0,
+        descuento:10,
         color: 'from-blue-500 to-cyan-600',
         icono: '🏢'
       },
@@ -207,7 +209,8 @@
         nombre: 'Sucursal Mediana',
         descripcion: 'Hasta 10 personas',
         usuarios: 10,
-        precio: 1599,
+        precio: 0,
+        descuento:15,
         color: 'from-purple-500 to-pink-600',
         icono: '🏬'
       },
@@ -216,7 +219,8 @@
         nombre: 'Sucursal Grande',
         descripcion: 'Hasta 30 personas',
         usuarios: 30,
-        precio: 3999,
+        precio: 0,
+        descuento:30,
         color: 'from-orange-500 to-red-600',
         icono: '🏭'
       },
@@ -237,28 +241,28 @@
         id: 'atencion-presencial',
         nombre: 'Atención Presencial',
         descripcion: 'Soporte y atención cara a cara',
-        precio: 199,
+        precio: 20,
         icono: '🤝'
       },
       {
         id: 'videollamada',
         nombre: 'Videollamadas',
-        descripcion: 'Comunicación por video HD',
-        precio: 149,
+        descripcion: 'Comunicación por video HD, incluye 80 hs de grabación por usaurio',
+        precio: 100,
         icono: '📹'
       },
       {
         id: 'livechat',
         nombre: 'Live Chat',
         descripcion: 'Chat en tiempo real',
-        precio: 99,
+        precio: 30,
         icono: '💬'
       },
       {
         id: 'cobrowse',
         nombre: 'Co-browse',
-        descripcion: 'Navegación colaborativa',
-        precio: 249,
+        descripcion: 'Navegación colaborativa, incluye 20 horas por usuario',
+        precio: 30,
         icono: '🌐'
       },
       {
@@ -271,15 +275,15 @@
       {
         id: 'analisis-sentimiento',
         nombre: 'Análisis de Sentimiento',
-        descripcion: 'Análisis emocional avanzado',
-        precio: 299,
+        descripcion: 'Análisis emocional avanzado incluye 80 hs de grabación por usuario',
+        precio: 400,
         icono: '😊'
       },
       {
         id: 'pantallas',
         nombre: 'Pantallas Digitales',
         descripcion: 'Pantallas para información y comunicación',
-        precio: 89,
+        precio: 50,
         icono: '📺',
         esCantidad: true // Indica que esta característica requiere cantidad
       }
@@ -305,7 +309,6 @@
         planElement.innerHTML = `
           <div class="text-center">
             <div class="text-4xl mb-4">${plan.icono}</div>
-            <div class="h-2 bg-gradient-to-r ${plan.color} rounded-full mb-4"></div>
             <h3 class="text-xl font-bold mb-2">${plan.nombre}</h3>
             <p class="text-slate-600 text-sm mb-4">${plan.descripcion}</p>
             <div class="text-2xl font-bold text-slate-800 mb-2">$${plan.precio.toLocaleString()}</div>
@@ -607,10 +610,22 @@
                   <div class="text-sm opacity-80 mb-2">Características:</div>
                   ${Array.from(caracteristicasSucursal.entries()).map(([caracteristicaId, cantidadCaracteristica]) => {
                     const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
-                    const totalCaracteristica = caracteristica ? caracteristica.precio * cantidadCaracteristica * cantidad : 0;
+                    let totalCaracteristica = 0;
+                    let descripcionCalculo = '';
+                    
+                    if (caracteristica.esCantidad) {
+                      // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
+                      totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
+                      descripcionCalculo = `(${cantidadCaracteristica} pantallas)`;
+                    } else {
+                      // Para características normales: precio × usuarios × cantidad_sucursales
+                      totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad;
+                      descripcionCalculo = `(${plan.usuarios} usuarios)`;
+                    }
+                    
                     return `
                       <div class="flex justify-between items-center text-sm">
-                        <span class="opacity-80">${caracteristica?.nombre || caracteristicaId}${caracteristica?.esCantidad ? ` (${cantidadCaracteristica})` : ''}</span>
+                        <span class="opacity-80">${caracteristica?.nombre || caracteristicaId} ${descripcionCalculo}</span>
                         <span class="font-semibold">$${totalCaracteristica.toLocaleString()}</span>
                       </div>
                     `;
@@ -664,7 +679,13 @@
         caracteristicasSucursal.forEach((cantidadCaracteristica, caracteristicaId) => {
           const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
           if (caracteristica) {
-            precioCaracteristicas += caracteristica.precio * cantidadCaracteristica * cantidad;
+            if (caracteristica.esCantidad) {
+              // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
+              precioCaracteristicas += caracteristica.precio * cantidadCaracteristica * cantidad;
+            } else {
+              // Para características normales: precio × usuarios × cantidad_sucursales
+              precioCaracteristicas += caracteristica.precio * plan.usuarios * cantidad;
+            }
           }
         });
       });
@@ -805,10 +826,21 @@
           yPosition += 10;
           caracteristicasSucursal.forEach((cantidadCaracteristica, caracteristicaId) => {
             const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
-            const totalCaracteristica = caracteristica ? caracteristica.precio * cantidadCaracteristica * cantidad : 0;
+            let totalCaracteristica = 0;
+            let descripcionCalculo = '';
+            
+            if (caracteristica.esCantidad) {
+              // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
+              totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
+              descripcionCalculo = ` (${cantidadCaracteristica} pantallas)`;
+            } else {
+              // Para características normales: precio × usuarios × cantidad_sucursales
+              totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad;
+              descripcionCalculo = ` (${plan.usuarios} usuarios)`;
+            }
+            
             const nombreCaracteristica = caracteristica?.nombre || caracteristicaId;
-            const cantidadTexto = caracteristica?.esCantidad ? ` (${cantidadCaracteristica})` : '';
-            doc.text(`• ${nombreCaracteristica}${cantidadTexto}: $${totalCaracteristica.toLocaleString()}`, 30, yPosition);
+            doc.text(`• ${nombreCaracteristica}${descripcionCalculo}: $${totalCaracteristica.toLocaleString()}`, 30, yPosition);
             yPosition += 10;
           });
         }
