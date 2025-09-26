@@ -274,11 +274,19 @@
         descripcion: 'Análisis emocional avanzado',
         precio: 299,
         icono: '😊'
+      },
+      {
+        id: 'pantallas',
+        nombre: 'Pantallas Digitales',
+        descripcion: 'Pantallas para información y comunicación',
+        precio: 89,
+        icono: '📺',
+        esCantidad: true // Indica que esta característica requiere cantidad
       }
     ];
 
     let planSeleccionado = null;
-    let sucursalesSeleccionadas = new Map(); // Map: planId -> { cantidad: number, caracteristicas: Set }
+    let sucursalesSeleccionadas = new Map(); // Map: planId -> { cantidad: number, caracteristicas: Map(caracteristicaId -> cantidad) }
 
     // Inicializar la aplicación
     function init() {
@@ -376,14 +384,47 @@
           <!-- Características específicas para este tipo de sucursal -->
           <div class="border-t pt-4">
             <h6 class="text-sm font-semibold text-slate-700 mb-3">Características para ${plan.nombre}:</h6>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="caracteristicas-${planId}">
-              ${caracteristicas.map(caracteristica => `
-                <div class="flex items-center gap-2 bg-slate-50 rounded-lg p-2">
-                  <input type="checkbox" class="caracteristica-sucursal w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
-                         data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${caracteristicasSucursal.has(caracteristica.id) ? 'checked' : ''}>
-                  <span class="text-sm font-medium">${caracteristica.nombre}</span>
-                </div>
-              `).join('')}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="caracteristicas-${planId}">
+              ${caracteristicas.map(caracteristica => {
+                const cantidadCaracteristica = caracteristicasSucursal.get(caracteristica.id) || 0;
+                const estaSeleccionada = cantidadCaracteristica > 0;
+                
+                return `
+                  <div class="bg-slate-50 rounded-lg p-3 border-2 ${estaSeleccionada ? 'border-blue-300 bg-blue-50' : 'border-transparent'}">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center gap-2">
+                        <span class="text-lg">${caracteristica.icono}</span>
+                        <span class="text-sm font-medium">${caracteristica.nombre}</span>
+                      </div>
+                      <div class="text-sm font-bold text-blue-600">$${caracteristica.precio.toLocaleString()}</div>
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3">${caracteristica.descripcion}</p>
+                    
+                    ${caracteristica.esCantidad ? `
+                      <div class="flex items-center gap-2">
+                        <button class="btnMenosCaracteristica w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${!estaSeleccionada ? 'disabled' : ''}>
+                          <span class="text-slate-600 text-xs font-bold">-</span>
+                        </button>
+                        <input type="number" min="0" max="20" value="${cantidadCaracteristica}" 
+                               class="w-12 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 cantidad-caracteristica" 
+                               data-plan="${planId}" data-caracteristica="${caracteristica.id}" />
+                        <button class="btnMasCaracteristica w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                data-plan="${planId}" data-caracteristica="${caracteristica.id}">
+                          <span class="text-slate-600 text-xs font-bold">+</span>
+                        </button>
+                        <span class="text-xs text-slate-500 ml-2">cantidad</span>
+                      </div>
+                    ` : `
+                      <div class="flex items-center gap-2">
+                        <input type="checkbox" class="caracteristica-sucursal w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
+                               data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${estaSeleccionada ? 'checked' : ''}>
+                        <span class="text-sm text-slate-700">Incluir</span>
+                      </div>
+                    `}
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
         `;
@@ -454,12 +495,68 @@
           const data = sucursalesSeleccionadas.get(planId);
           
           if (this.checked) {
-            data.caracteristicas.add(caracteristicaId);
+            data.caracteristicas.set(caracteristicaId, 1);
           } else {
             data.caracteristicas.delete(caracteristicaId);
           }
           
           sucursalesSeleccionadas.set(planId, data);
+          renderSucursales(); // Re-renderizar para actualizar UI
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      // Event listeners para características con cantidad
+      container.querySelectorAll('.btnMenosCaracteristica').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const cantidadActual = data.caracteristicas.get(caracteristicaId) || 0;
+          
+          if (cantidadActual > 0) {
+            data.caracteristicas.set(caracteristicaId, cantidadActual - 1);
+            sucursalesSeleccionadas.set(planId, data);
+            renderSucursales();
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.btnMasCaracteristica').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const cantidadActual = data.caracteristicas.get(caracteristicaId) || 0;
+          
+          if (cantidadActual < 20) {
+            data.caracteristicas.set(caracteristicaId, cantidadActual + 1);
+            sucursalesSeleccionadas.set(planId, data);
+            renderSucursales();
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.cantidad-caracteristica').forEach(input => {
+        input.addEventListener('input', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const value = parseInt(this.value) || 0;
+          
+          if (value > 0) {
+            data.caracteristicas.set(caracteristicaId, value);
+          } else {
+            data.caracteristicas.delete(caracteristicaId);
+          }
+          
+          sucursalesSeleccionadas.set(planId, data);
+          renderSucursales();
           actualizarResumen();
           calcularTotal();
         });
@@ -508,12 +605,12 @@
               ${caracteristicasSucursal.size > 0 ? `
                 <div class="border-t border-white/20 pt-3">
                   <div class="text-sm opacity-80 mb-2">Características:</div>
-                  ${Array.from(caracteristicasSucursal).map(caracteristicaId => {
+                  ${Array.from(caracteristicasSucursal.entries()).map(([caracteristicaId, cantidadCaracteristica]) => {
                     const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
-                    const totalCaracteristica = caracteristica ? caracteristica.precio * cantidad : 0;
+                    const totalCaracteristica = caracteristica ? caracteristica.precio * cantidadCaracteristica * cantidad : 0;
                     return `
                       <div class="flex justify-between items-center text-sm">
-                        <span class="opacity-80">${caracteristica?.nombre || caracteristicaId}</span>
+                        <span class="opacity-80">${caracteristica?.nombre || caracteristicaId}${caracteristica?.esCantidad ? ` (${cantidadCaracteristica})` : ''}</span>
                         <span class="font-semibold">$${totalCaracteristica.toLocaleString()}</span>
                       </div>
                     `;
@@ -564,10 +661,10 @@
         totalSucursales += cantidad;
         
         // Características específicas para este tipo de sucursal
-        caracteristicasSucursal.forEach(caracteristicaId => {
+        caracteristicasSucursal.forEach((cantidadCaracteristica, caracteristicaId) => {
           const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
           if (caracteristica) {
-            precioCaracteristicas += caracteristica.precio * cantidad;
+            precioCaracteristicas += caracteristica.precio * cantidadCaracteristica * cantidad;
           }
         });
       });
@@ -653,7 +750,7 @@
         // Si no existe, agregar con cantidad 1 y características vacías
         sucursalesSeleccionadas.set(planId, {
           cantidad: 1,
-          caracteristicas: new Set()
+          caracteristicas: new Map()
         });
       }
       
@@ -706,10 +803,12 @@
         if (caracteristicasSucursal.size > 0) {
           doc.text(`Características:`, 25, yPosition);
           yPosition += 10;
-          caracteristicasSucursal.forEach(caracteristicaId => {
+          caracteristicasSucursal.forEach((cantidadCaracteristica, caracteristicaId) => {
             const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
-            const totalCaracteristica = caracteristica ? caracteristica.precio * cantidad : 0;
-            doc.text(`• ${caracteristica?.nombre || caracteristicaId}: $${totalCaracteristica.toLocaleString()}`, 30, yPosition);
+            const totalCaracteristica = caracteristica ? caracteristica.precio * cantidadCaracteristica * cantidad : 0;
+            const nombreCaracteristica = caracteristica?.nombre || caracteristicaId;
+            const cantidadTexto = caracteristica?.esCantidad ? ` (${cantidadCaracteristica})` : '';
+            doc.text(`• ${nombreCaracteristica}${cantidadTexto}: $${totalCaracteristica.toLocaleString()}`, 30, yPosition);
             yPosition += 10;
           });
         }
