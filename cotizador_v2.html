@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cotizador Numia V2 - Planes de Sucursales</title>
+  <!-- Google Fonts - Hanken Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jsPDF + autotable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    * {
+      font-family: 'Hanken Grotesk', sans-serif;
+    }
+    
+    .plan-card {
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .plan-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .plan-card.selected {
+      border-color: #3b82f6;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    
+    .feature-toggle {
+      transition: all 0.2s ease;
+    }
+    
+    .feature-toggle:checked {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+    }
+    
+    .feature-toggle:checked:hover {
+      background-color: #2563eb;
+    }
+    
+    .price-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] { 
+      -moz-appearance: textfield; 
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 text-slate-800">
+  <header class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="images/numia.png" alt="Logo Numia" class="h-12 w-auto" />
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Cotizador Numia V2</h1>
+          <p class="text-sm text-slate-600">Planes de Sucursales con Características Premium</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <label class="text-sm flex items-center gap-2">
+          Cliente
+          <input id="cliente" type="text" placeholder="Nombre de cliente" 
+                 class="px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </label>
+        <button id="btnGenerarPDF" 
+                class="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg transition-all duration-200">
+          Generar PDF
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Selector de Planes -->
+    <section class="mb-8">
+      <!--h2 class="text-3xl font-bold text-center mb-2">Selecciona tu Plan</h2>
+      <p class="text-center text-slate-600 mb-8">Elige el plan que mejor se adapte a las necesidades de tu sucursal</p-->
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6" id="planesContainer">
+        <!-- Los planes se generarán dinámicamente -->
+      </div>
+    </section>
+
+    <!-- Configuración de Sucursales y Características -->
+    <section class="mb-8" id="caracteristicasSection" style="display: block;">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-2xl font-bold mb-6">Configura tus Sucursales y Características</h3>
+        
+        <!-- Selector de Tipos de Sucursales -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-8 border border-blue-200">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h4 class="text-lg font-semibold text-slate-800 mb-2">Tipos de Sucursales</h4>
+              <p class="text-slate-600 text-sm">Agrega diferentes tipos de sucursales a tu cotización</p>
+            </div>
+            <button id="btnAgregarSucursal" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              + Agregar Sucursal
+            </button>
+          </div>
+          
+          <div id="sucursalesContainer" class="space-y-4">
+            <!-- Las sucursales se generarán dinámicamente -->
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="caracteristicasContainer">
+          <!-- Las características se generarán dinámicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Resumen y Total -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+          <h3 class="text-2xl font-bold mb-6">Resumen de Configuración</h3>
+          <div id="resumenConfiguracion">
+            <p class="text-slate-600">Selecciona un plan para ver el resumen</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="lg:col-span-1">
+        <div class="sticky top-24">
+          <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h3 class="text-2xl font-bold mb-6">Total de Cotización</h3>
+            
+            <div class="space-y-4 mb-6">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Total Sucursales:</span>
+                <span id="totalSucursales" class="font-semibold">0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Plan Base:</span>
+                <span id="precioBase" class="font-semibold">$0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Características:</span>
+                <span id="precioCaracteristicas" class="font-semibold">$0</span>
+              </div>
+              <div class="border-t pt-4">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-slate-600">Subtotal:</span>
+                  <span id="subtotal" class="font-semibold">$0</span>
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                  <label class="flex items-center gap-2 text-sm">
+                    <input id="chkDescuento" type="checkbox" class="rounded">
+                    Aplicar descuento:
+                  </label>
+                  <input id="descuento" type="number" min="0" max="100" value="0" 
+                         class="w-20 px-2 py-1 rounded border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                         placeholder="%" disabled />
+                </div>
+                <div class="flex justify-between items-center text-2xl font-bold">
+                  <span>Total:</span>
+                  <span id="total" class="price-display">$0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Configuración de planes
+    const planes = [
+      {
+        id: 'individual',
+        nombre: 'Usuario Individual',
+        descripcion: 'Perfecto para profesionales independientes',
+        usuarios: 1,
+        precio: 299,
+        color: 'from-green-500 to-emerald-600',
+        icono: '👤'
+      },
+      {
+        id: 'sucursal-5',
+        nombre: 'Sucursal Pequeña',
+        descripcion: 'Hasta 5 personas',
+        usuarios: 5,
+        precio: 899,
+        color: 'from-blue-500 to-cyan-600',
+        icono: '🏢'
+      },
+      {
+        id: 'sucursal-10',
+        nombre: 'Sucursal Mediana',
+        descripcion: 'Hasta 10 personas',
+        usuarios: 10,
+        precio: 1599,
+        color: 'from-purple-500 to-pink-600',
+        icono: '🏬'
+      },
+      {
+        id: 'sucursal-30',
+        nombre: 'Sucursal Grande',
+        descripcion: 'Hasta 30 personas',
+        usuarios: 30,
+        precio: 3999,
+        color: 'from-orange-500 to-red-600',
+        icono: '🏭'
+      },
+      {
+        id: 'empresarial',
+        nombre: 'Plan Empresarial',
+        descripcion: 'Más de 30 personas',
+        usuarios: 50,
+        precio: 7999,
+        color: 'from-indigo-500 to-purple-700',
+        icono: '🌟'
+      }
+    ];
+
+    // Configuración de características
+    const caracteristicas = [
+      {
+        id: 'atencion-presencial',
+        nombre: 'Atención Presencial',
+        descripcion: 'Soporte y atención cara a cara',
+        precio: 199,
+        icono: '🤝'
+      },
+      {
+        id: 'videollamada',
+        nombre: 'Videollamadas',
+        descripcion: 'Comunicación por video HD',
+        precio: 149,
+        icono: '📹'
+      },
+      {
+        id: 'livechat',
+        nombre: 'Live Chat',
+        descripcion: 'Chat en tiempo real',
+        precio: 99,
+        icono: '💬'
+      },
+      {
+        id: 'cobrowse',
+        nombre: 'Co-browse',
+        descripcion: 'Navegación colaborativa',
+        precio: 249,
+        icono: '🌐'
+      },
+      {
+        id: 'copiloto',
+        nombre: 'Copiloto IA',
+        descripcion: 'Asistente inteligente',
+        precio: 399,
+        icono: '🤖'
+      },
+      {
+        id: 'analisis-sentimiento',
+        nombre: 'Análisis de Sentimiento',
+        descripcion: 'Análisis emocional avanzado',
+        precio: 299,
+        icono: '😊'
+      }
+    ];
+
+    let planSeleccionado = null;
+    let sucursalesSeleccionadas = new Map(); // Map: planId -> { cantidad: number, caracteristicas: Set }
+
+    // Inicializar la aplicación
+    function init() {
+      renderPlanes();
+      setupEventListeners();
+    }
+
+    // Renderizar planes
+    function renderPlanes() {
+      const container = document.getElementById('planesContainer');
+      container.innerHTML = '';
+
+      planes.forEach(plan => {
+        const planElement = document.createElement('div');
+        planElement.className = `plan-card bg-white rounded-2xl shadow-lg p-6 cursor-pointer transition-all duration-300 hover:shadow-xl`;
+        planElement.innerHTML = `
+          <div class="text-center">
+            <div class="text-4xl mb-4">${plan.icono}</div>
+            <div class="h-2 bg-gradient-to-r ${plan.color} rounded-full mb-4"></div>
+            <h3 class="text-xl font-bold mb-2">${plan.nombre}</h3>
+            <p class="text-slate-600 text-sm mb-4">${plan.descripcion}</p>
+            <div class="text-2xl font-bold text-slate-800 mb-2">$${plan.precio.toLocaleString()}</div>
+            <div class="text-sm text-slate-500">${plan.usuarios} usuario${plan.usuarios > 1 ? 's' : ''}</div>
+          </div>
+        `;
+        
+        planElement.addEventListener('click', () => seleccionarPlan(plan));
+        container.appendChild(planElement);
+      });
+    }
+
+    // Seleccionar plan
+    function seleccionarPlan(plan) {
+      planSeleccionado = plan;
+      
+      // Actualizar UI
+      document.querySelectorAll('.plan-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      event.currentTarget.classList.add('selected');
+      
+      // Mostrar sección de características
+      document.getElementById('caracteristicasSection').style.display = 'block';
+      renderSucursales();
+      actualizarResumen();
+      calcularTotal();
+    }
+
+    // Renderizar sucursales
+    function renderSucursales() {
+      const container = document.getElementById('sucursalesContainer');
+      
+      if (sucursalesSeleccionadas.size === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-center py-4">No hay sucursales agregadas. Haz clic en "Agregar Sucursal" para comenzar.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        const plan = planes.find(p => p.id === planId);
+        const cantidad = data.cantidad;
+        const caracteristicasSucursal = data.caracteristicas || new Set();
+        
+        const sucursalElement = document.createElement('div');
+        sucursalElement.className = 'bg-white rounded-xl p-6 border border-slate-200 mb-4';
+        sucursalElement.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-4">
+              <div class="text-3xl">${plan.icono}</div>
+              <div>
+                <h5 class="text-lg font-semibold">${plan.nombre}</h5>
+                <p class="text-sm text-slate-600">${plan.descripcion}</p>
+                <p class="text-sm text-blue-600 font-medium">$${plan.precio.toLocaleString()} por sucursal</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2">
+                <button class="btnMenosSucursal w-8 h-8 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center hover:bg-slate-200 transition-colors" data-plan="${planId}">
+                  <span class="text-slate-600 font-bold">-</span>
+                </button>
+                <input type="number" min="1" max="100" value="${cantidad}" 
+                       class="w-16 text-center border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 cantidad-sucursal" 
+                       data-plan="${planId}" />
+                <button class="btnMasSucursal w-8 h-8 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center hover:bg-slate-200 transition-colors" data-plan="${planId}">
+                  <span class="text-slate-600 font-bold">+</span>
+                </button>
+              </div>
+              <button class="btnEliminarSucursal px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors" data-plan="${planId}">
+                Eliminar
+              </button>
+            </div>
+          </div>
+          
+          <!-- Características específicas para este tipo de sucursal -->
+          <div class="border-t pt-4">
+            <h6 class="text-sm font-semibold text-slate-700 mb-3">Características para ${plan.nombre}:</h6>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="caracteristicas-${planId}">
+              ${caracteristicas.map(caracteristica => `
+                <div class="flex items-center gap-2 bg-slate-50 rounded-lg p-2">
+                  <input type="checkbox" class="caracteristica-sucursal w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
+                         data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${caracteristicasSucursal.has(caracteristica.id) ? 'checked' : ''}>
+                  <span class="text-sm font-medium">${caracteristica.nombre}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(sucursalElement);
+      });
+      
+      // Agregar event listeners
+      container.querySelectorAll('.btnMenosSucursal').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const input = container.querySelector(`input[data-plan="${planId}"]`);
+          const currentValue = parseInt(input.value);
+          if (currentValue > 1) {
+            input.value = currentValue - 1;
+            const data = sucursalesSeleccionadas.get(planId);
+            data.cantidad = parseInt(input.value);
+            sucursalesSeleccionadas.set(planId, data);
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.btnMasSucursal').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const input = container.querySelector(`input[data-plan="${planId}"]`);
+          const currentValue = parseInt(input.value);
+          if (currentValue < 100) {
+            input.value = currentValue + 1;
+            const data = sucursalesSeleccionadas.get(planId);
+            data.cantidad = parseInt(input.value);
+            sucursalesSeleccionadas.set(planId, data);
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.cantidad-sucursal').forEach(input => {
+        input.addEventListener('input', function() {
+          const planId = this.dataset.plan;
+          const value = parseInt(this.value) || 1;
+          const data = sucursalesSeleccionadas.get(planId);
+          data.cantidad = value;
+          sucursalesSeleccionadas.set(planId, data);
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      container.querySelectorAll('.btnEliminarSucursal').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          sucursalesSeleccionadas.delete(planId);
+          renderSucursales();
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      // Event listeners para características por sucursal
+      container.querySelectorAll('.caracteristica-sucursal').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          
+          if (this.checked) {
+            data.caracteristicas.add(caracteristicaId);
+          } else {
+            data.caracteristicas.delete(caracteristicaId);
+          }
+          
+          sucursalesSeleccionadas.set(planId, data);
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+    }
+
+
+    // Actualizar resumen
+    function actualizarResumen() {
+      const container = document.getElementById('resumenConfiguracion');
+      
+      if (sucursalesSeleccionadas.size === 0) {
+        container.innerHTML = '<p class="text-slate-600">Agrega sucursales para ver el resumen</p>';
+        return;
+      }
+
+      let html = '<div class="space-y-4">';
+      
+      // Mostrar cada tipo de sucursal
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        const plan = planes.find(p => p.id === planId);
+        const cantidad = data.cantidad;
+        const caracteristicasSucursal = data.caracteristicas || new Set();
+        const totalPlan = plan.precio * cantidad;
+        
+        html += `
+          <div class="bg-gradient-to-r ${plan.color} rounded-xl p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="text-3xl">${plan.icono}</div>
+                <div>
+                  <h4 class="text-xl font-bold">${plan.nombre}</h4>
+                  <p class="opacity-90 text-sm">${plan.descripcion}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm opacity-80">Cantidad:</div>
+                <div class="text-2xl font-bold">${cantidad}</div>
+              </div>
+            </div>
+            <div class="border-t border-white/20 pt-4">
+              <div class="flex justify-between items-center mb-3">
+                <span class="opacity-80">$${plan.precio.toLocaleString()} × ${cantidad}</span>
+                <span class="text-2xl font-bold">$${totalPlan.toLocaleString()}</span>
+              </div>
+              ${caracteristicasSucursal.size > 0 ? `
+                <div class="border-t border-white/20 pt-3">
+                  <div class="text-sm opacity-80 mb-2">Características:</div>
+                  ${Array.from(caracteristicasSucursal).map(caracteristicaId => {
+                    const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
+                    const totalCaracteristica = caracteristica ? caracteristica.precio * cantidad : 0;
+                    return `
+                      <div class="flex justify-between items-center text-sm">
+                        <span class="opacity-80">${caracteristica?.nombre || caracteristicaId}</span>
+                        <span class="font-semibold">$${totalCaracteristica.toLocaleString()}</span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    // Función auxiliar para obtener el total de sucursales
+    function getTotalSucursales() {
+      let total = 0;
+      sucursalesSeleccionadas.forEach(data => {
+        total += data.cantidad;
+      });
+      return total;
+    }
+
+    // Calcular total
+    function calcularTotal() {
+      if (sucursalesSeleccionadas.size === 0) {
+        document.getElementById('totalSucursales').textContent = '0';
+        document.getElementById('precioBase').textContent = '$0';
+        document.getElementById('precioCaracteristicas').textContent = '$0';
+        document.getElementById('subtotal').textContent = '$0';
+        document.getElementById('total').textContent = '$0';
+        return;
+      }
+
+      let precioBase = 0;
+      let precioCaracteristicas = 0;
+      let totalSucursales = 0;
+
+      // Calcular precio base y características por cada tipo de sucursal
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        const plan = planes.find(p => p.id === planId);
+        const cantidad = data.cantidad;
+        const caracteristicasSucursal = data.caracteristicas || new Set();
+        
+        // Precio base
+        precioBase += plan.precio * cantidad;
+        totalSucursales += cantidad;
+        
+        // Características específicas para este tipo de sucursal
+        caracteristicasSucursal.forEach(caracteristicaId => {
+          const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
+          if (caracteristica) {
+            precioCaracteristicas += caracteristica.precio * cantidad;
+          }
+        });
+      });
+
+      const subtotal = precioBase + precioCaracteristicas;
+      const descuentoHabilitado = document.getElementById('chkDescuento').checked;
+      const porcentajeDescuento = descuentoHabilitado ? parseInt(document.getElementById('descuento').value) || 0 : 0;
+      const descuento = subtotal * (porcentajeDescuento / 100);
+      const total = subtotal - descuento;
+
+      document.getElementById('totalSucursales').textContent = totalSucursales;
+      document.getElementById('precioBase').textContent = `$${precioBase.toLocaleString()}`;
+      document.getElementById('precioCaracteristicas').textContent = `$${precioCaracteristicas.toLocaleString()}`;
+      document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
+      document.getElementById('total').textContent = `$${total.toLocaleString()}`;
+    }
+
+    // Configurar event listeners
+    function setupEventListeners() {
+      document.getElementById('chkDescuento').addEventListener('change', function() {
+        document.getElementById('descuento').disabled = !this.checked;
+        calcularTotal();
+      });
+
+      document.getElementById('descuento').addEventListener('input', calcularTotal);
+
+      document.getElementById('btnGenerarPDF').addEventListener('click', generarPDF);
+      
+      // Event listener para agregar sucursal
+      document.getElementById('btnAgregarSucursal').addEventListener('click', mostrarModalAgregarSucursal);
+    }
+
+    // Mostrar modal para agregar sucursal
+    function mostrarModalAgregarSucursal() {
+      // Crear modal dinámicamente
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+          <h3 class="text-2xl font-bold mb-6">Agregar Tipo de Sucursal</h3>
+          <div class="space-y-4">
+            ${planes.map(plan => `
+              <div class="border border-slate-200 rounded-lg p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors plan-option" data-plan-id="${plan.id}">
+                <div class="flex items-center gap-3">
+                  <div class="text-2xl">${plan.icono}</div>
+                  <div>
+                    <h4 class="font-semibold">${plan.nombre}</h4>
+                    <p class="text-sm text-slate-600">${plan.descripcion}</p>
+                    <p class="text-sm text-blue-600 font-medium">$${plan.precio.toLocaleString()} por sucursal</p>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button class="px-4 py-2 text-slate-600 hover:text-slate-800" onclick="this.closest('.fixed').remove()">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Agregar event listeners a las opciones
+      modal.querySelectorAll('.plan-option').forEach(option => {
+        option.addEventListener('click', function() {
+          const planId = this.dataset.planId;
+          agregarSucursal(planId);
+          modal.remove();
+        });
+      });
+    }
+
+    // Agregar sucursal
+    function agregarSucursal(planId) {
+      if (sucursalesSeleccionadas.has(planId)) {
+        // Si ya existe, incrementar cantidad
+        const data = sucursalesSeleccionadas.get(planId);
+        data.cantidad += 1;
+        sucursalesSeleccionadas.set(planId, data);
+      } else {
+        // Si no existe, agregar con cantidad 1 y características vacías
+        sucursalesSeleccionadas.set(planId, {
+          cantidad: 1,
+          caracteristicas: new Set()
+        });
+      }
+      
+      renderSucursales();
+      actualizarResumen();
+      calcularTotal();
+    }
+
+    // Generar PDF
+    function generarPDF() {
+      if (sucursalesSeleccionadas.size === 0) {
+        alert('Por favor agrega al menos una sucursal primero');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      const cliente = document.getElementById('cliente').value || 'Cliente';
+      
+      // Título
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text('Cotización Numia V2', 20, 30);
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Cliente: ${cliente}`, 20, 45);
+      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 55);
+      
+      // Sucursales seleccionadas
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Sucursales Seleccionadas:', 20, 75);
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      let yPosition = 90;
+      
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        const plan = planes.find(p => p.id === planId);
+        const cantidad = data.cantidad;
+        const caracteristicasSucursal = data.caracteristicas || new Set();
+        const totalPlan = plan.precio * cantidad;
+        
+        doc.text(`${plan.nombre} - ${plan.descripcion}`, 20, yPosition);
+        doc.text(`Cantidad: ${cantidad} | Precio unitario: $${plan.precio.toLocaleString()} | Total: $${totalPlan.toLocaleString()}`, 25, yPosition + 10);
+        yPosition += 15;
+        
+        if (caracteristicasSucursal.size > 0) {
+          doc.text(`Características:`, 25, yPosition);
+          yPosition += 10;
+          caracteristicasSucursal.forEach(caracteristicaId => {
+            const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
+            const totalCaracteristica = caracteristica ? caracteristica.precio * cantidad : 0;
+            doc.text(`• ${caracteristica?.nombre || caracteristicaId}: $${totalCaracteristica.toLocaleString()}`, 30, yPosition);
+            yPosition += 10;
+          });
+        }
+        yPosition += 10;
+      });
+      
+      // Total
+      yPosition += 20;
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      const total = document.getElementById('total').textContent;
+      doc.text(`Total: ${total}`, 20, yPosition);
+      
+      // Guardar
+      doc.save(`Cotizacion_Numia_${cliente}_${new Date().toISOString().split('T')[0]}.pdf`);
+    }
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
