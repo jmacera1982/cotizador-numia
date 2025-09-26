@@ -392,12 +392,22 @@
                 const cantidadCaracteristica = caracteristicasSucursal.get(caracteristica.id) || 0;
                 const estaSeleccionada = cantidadCaracteristica > 0;
                 
+                // Verificar si esta característica depende de videollamada
+                const dependeDeVideollamada = ['cobrowse', 'analisis-sentimiento'].includes(caracteristica.id);
+                const videollamadaSeleccionada = caracteristicasSucursal.get('videollamada') > 0;
+                
+                // Si depende de videollamada y no está seleccionada, no mostrar
+                if (dependeDeVideollamada && !videollamadaSeleccionada) {
+                  return '';
+                }
+                
                 return `
-                  <div class="bg-slate-50 rounded-lg p-3 border-2 ${estaSeleccionada ? 'border-blue-300 bg-blue-50' : 'border-transparent'}">
+                  <div class="bg-slate-50 rounded-lg p-3 border-2 ${estaSeleccionada ? 'border-blue-300 bg-blue-50' : 'border-transparent'} ${dependeDeVideollamada ? 'opacity-75' : ''}">
                     <div class="flex items-center justify-between mb-2">
                       <div class="flex items-center gap-2">
                         <span class="text-lg">${caracteristica.icono}</span>
                         <span class="text-sm font-medium">${caracteristica.nombre}</span>
+                        ${dependeDeVideollamada ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Requiere Videollamadas</span>' : ''}
                       </div>
                       <div class="text-sm font-bold text-blue-600">$${caracteristica.precio.toLocaleString()}</div>
                     </div>
@@ -501,6 +511,12 @@
             data.caracteristicas.set(caracteristicaId, 1);
           } else {
             data.caracteristicas.delete(caracteristicaId);
+            
+            // Si se desmarca videollamada, eliminar características dependientes
+            if (caracteristicaId === 'videollamada') {
+              data.caracteristicas.delete('cobrowse');
+              data.caracteristicas.delete('analisis-sentimiento');
+            }
           }
           
           sucursalesSeleccionadas.set(planId, data);
@@ -583,7 +599,8 @@
         const plan = planes.find(p => p.id === planId);
         const cantidad = data.cantidad;
         const caracteristicasSucursal = data.caracteristicas || new Set();
-        const totalPlan = plan.precio * cantidad;
+        const precioConDescuento = plan.precio * (1 - (plan.descuento || 0) / 100);
+        const totalPlan = precioConDescuento * cantidad;
         
         html += `
           <div class="bg-gradient-to-r ${plan.color} rounded-xl p-6 text-white">
@@ -593,6 +610,7 @@
                 <div>
                   <h4 class="text-xl font-bold">${plan.nombre}</h4>
                   <p class="opacity-90 text-sm">${plan.descripcion}</p>
+                  ${plan.descuento > 0 ? `<p class="opacity-80 text-xs">Descuento: ${plan.descuento}%</p>` : ''}
                 </div>
               </div>
               <div class="text-right">
@@ -602,8 +620,14 @@
             </div>
             <div class="border-t border-white/20 pt-4">
               <div class="flex justify-between items-center mb-3">
-                <span class="opacity-80">$${plan.precio.toLocaleString()} × ${cantidad}</span>
-                <span class="text-2xl font-bold">$${totalPlan.toLocaleString()}</span>
+                <div>
+                  <div class="text-sm opacity-80">Precio original: $${plan.precio.toLocaleString()}</div>
+                  ${plan.descuento > 0 ? `<div class="text-sm opacity-80">Con descuento: $${precioConDescuento.toLocaleString()}</div>` : ''}
+                </div>
+                <div class="text-right">
+                  <div class="text-sm opacity-80">Total:</div>
+                  <span class="text-2xl font-bold">$${totalPlan.toLocaleString()}</span>
+                </div>
               </div>
               ${caracteristicasSucursal.size > 0 ? `
                 <div class="border-t border-white/20 pt-3">
@@ -671,8 +695,9 @@
         const cantidad = data.cantidad;
         const caracteristicasSucursal = data.caracteristicas || new Set();
         
-        // Precio base
-        precioBase += plan.precio * cantidad;
+        // Precio base con descuento aplicado
+        const precioConDescuento = plan.precio * (1 - (plan.descuento || 0) / 100);
+        precioBase += precioConDescuento * cantidad;
         totalSucursales += cantidad;
         
         // Características específicas para este tipo de sucursal
@@ -815,11 +840,18 @@
         const plan = planes.find(p => p.id === planId);
         const cantidad = data.cantidad;
         const caracteristicasSucursal = data.caracteristicas || new Set();
-        const totalPlan = plan.precio * cantidad;
+        const precioConDescuento = plan.precio * (1 - (plan.descuento || 0) / 100);
+        const totalPlan = precioConDescuento * cantidad;
         
         doc.text(`${plan.nombre} - ${plan.descripcion}`, 20, yPosition);
-        doc.text(`Cantidad: ${cantidad} | Precio unitario: $${plan.precio.toLocaleString()} | Total: $${totalPlan.toLocaleString()}`, 25, yPosition + 10);
-        yPosition += 15;
+        if (plan.descuento > 0) {
+          doc.text(`Precio original: $${plan.precio.toLocaleString()} | Descuento: ${plan.descuento}% | Precio con descuento: $${precioConDescuento.toLocaleString()}`, 25, yPosition + 10);
+          doc.text(`Cantidad: ${cantidad} | Total: $${totalPlan.toLocaleString()}`, 25, yPosition + 20);
+          yPosition += 35;
+        } else {
+          doc.text(`Cantidad: ${cantidad} | Precio unitario: $${plan.precio.toLocaleString()} | Total: $${totalPlan.toLocaleString()}`, 25, yPosition + 10);
+          yPosition += 25;
+        }
         
         if (caracteristicasSucursal.size > 0) {
           doc.text(`Características:`, 25, yPosition);
