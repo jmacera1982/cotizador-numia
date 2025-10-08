@@ -348,7 +348,7 @@
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                   <span>Plan Base:</span>
-                  <span>$720</span>
+                  <span>$800</span>
                 </div>
                 <div class="flex justify-between">
                   <span>OCR:</span>
@@ -356,7 +356,7 @@
                 </div>
                 <div class="flex justify-between font-semibold border-t pt-2">
                   <span>Total:</span>
-                  <span id="desgloseEnterpriseTotal">$720</span>
+                  <span id="desgloseEnterpriseTotal">$800</span>
                 </div>
               </div>
             </div>
@@ -1136,7 +1136,7 @@
       const ocrElement = document.getElementById('enterpriseOCR');
       
       if (!ocrElement) {
-        return 720; // Valor por defecto si el elemento no está disponible
+        return 800; // Valor por defecto si el elemento no está disponible
       }
       
       const ocr = parseInt(ocrElement.value) || 0;
@@ -1274,7 +1274,7 @@
       const ocr = parseInt(ocrElement.value) || 0;
       
       // Calcular costos
-      const planBase = 720;
+      const planBase = 800;
       const costoOCR = ocr * costosUnitarios.valorOCR;
       const total = planBase + costoOCR;
       
