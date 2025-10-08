@@ -127,7 +127,7 @@
               <p class="text-xs text-orange-600 mb-3">⚠️ Solo integración, no incluye costos de envíos</p>
               <div class="flex items-center gap-2">
                 <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
-                       data-addon="sms" checked>
+                       data-addon="sms">
                 <span class="text-sm text-slate-700">Incluir</span>
               </div>
             </div>
@@ -145,7 +145,7 @@
               <p class="text-xs text-orange-600 mb-3">⚠️ Solo integración, no incluye cuentas ni costos de envíos</p>
               <div class="flex items-center gap-2">
                 <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
-                       data-addon="whatsapp" checked>
+                       data-addon="whatsapp">
                 <span class="text-sm text-slate-700">Incluir</span>
               </div>
             </div>
@@ -157,35 +157,18 @@
                   <span class="text-lg">🧪</span>
                   <span class="text-sm font-medium">Sandbox</span>
                 </div>
-                <div class="text-sm font-bold text-green-600">$15</div>
+                <div class="text-sm font-bold text-green-600">$100</div>
               </div>
               <p class="text-xs text-slate-600 mb-3">Ambiente de pruebas</p>
               <div class="flex items-center gap-2">
                 <button class="btnMenosSandbox w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors">
                   <span class="text-slate-600 text-xs font-bold">-</span>
                 </button>
-                <input type="number" min="1" max="10" value="1" 
+                <input type="number" min="0" max="10" value="0" 
                        class="w-12 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 cantidad-sandbox" />
                 <button class="btnMasSandbox w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors">
                   <span class="text-slate-600 text-xs font-bold">+</span>
                 </button>
-              </div>
-            </div>
-            
-            <!-- Copilot -->
-            <div class="bg-white rounded-lg p-4 border border-slate-200">
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-lg">🤖</span>
-                  <span class="text-sm font-medium">Copilot</span>
-                </div>
-                <div class="text-sm font-bold text-green-600">$200</div>
-              </div>
-              <p class="text-xs text-slate-600 mb-3">Asistente IA avanzado</p>
-              <div class="flex items-center gap-2">
-                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
-                       data-addon="copilot" checked>
-                <span class="text-sm text-slate-700">Incluir</span>
               </div>
             </div>
           </div>
@@ -502,6 +485,10 @@
                 <span class="text-slate-600">JB Chatbot:</span>
                 <span id="precioJB" class="font-semibold">$0</span>
               </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Tenant:</span>
+                <span id="precioTenant" class="font-semibold">$0</span>
+              </div>
               <div class="border-t pt-4">
                 <div class="flex justify-between items-center mb-2">
                   <span class="text-slate-600">Subtotal:</span>
@@ -634,6 +621,13 @@
         precio: 0.6, // Precio por hora
         icono: '📞',
         esVoz: true // Indica que esta característica es de voz y requiere configuración especial
+      },
+      {
+        id: 'copilot',
+        nombre: 'Copilot',
+        descripcion: 'Asistente IA avanzado',
+        precio: 30,
+        icono: '🤖'
       }
     ];
 
@@ -650,7 +644,7 @@
     let planSeleccionado = null;
     let sucursalesSeleccionadas = new Map(); // Map: planId -> { cantidad: number, caracteristicas: Map(caracteristicaId -> cantidad) }
     let tenantAddons = new Map(); // Map: addonId -> cantidad (para sandbox) o true/false (para otros)
-    let cantidadSandbox = 1;
+    let cantidadSandbox = 0;
     let jbPlanSeleccionado = null; // Plan de JB seleccionado
 
     // Inicializar la aplicación
@@ -662,11 +656,10 @@
 
     // Inicializar addons del tenant
     function initTenantAddons() {
-      // Inicializar con valores por defecto
-      tenantAddons.set('sms', true);
-      tenantAddons.set('whatsapp', true);
-      tenantAddons.set('sandbox', cantidadSandbox);
-      tenantAddons.set('copilot', true);
+      // Inicializar con valores por defecto (todos desmarcados)
+      tenantAddons.set('sms', false);
+      tenantAddons.set('whatsapp', false);
+      tenantAddons.set('sandbox', 0);
     }
 
     // Renderizar planes
@@ -1240,7 +1233,19 @@
         }
       }
 
-      const subtotal = precioBase + precioCaracteristicas + precioJB;
+      // Calcular precio de Tenant addons
+      let precioTenant = 0;
+      if (tenantAddons.get('sms')) {
+        precioTenant += 25; // SMS
+      }
+      if (tenantAddons.get('whatsapp')) {
+        precioTenant += 35; // WhatsApp
+      }
+      if (tenantAddons.get('sandbox')) {
+        precioTenant += 100 * tenantAddons.get('sandbox'); // Sandbox
+      }
+
+      const subtotal = precioBase + precioCaracteristicas + precioJB + precioTenant;
       const descuentoHabilitado = document.getElementById('chkDescuento').checked;
       const porcentajeDescuento = descuentoHabilitado ? parseInt(document.getElementById('descuento').value) || 0 : 0;
       const descuento = subtotal * (porcentajeDescuento / 100);
@@ -1250,6 +1255,7 @@
       document.getElementById('precioBase').textContent = `$${precioBase.toLocaleString()}`;
       document.getElementById('precioCaracteristicas').textContent = `$${precioCaracteristicas.toLocaleString()}`;
       document.getElementById('precioJB').textContent = `$${precioJB.toLocaleString()}`;
+      document.getElementById('precioTenant').textContent = `$${precioTenant.toLocaleString()}`;
       document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
       document.getElementById('total').textContent = `$${total.toLocaleString()}`;
     }
@@ -1273,6 +1279,55 @@
         plan.addEventListener('click', function() {
           const planType = this.dataset.plan;
           seleccionarJBPlan(planType);
+        });
+      });
+      
+      // Event listeners para addons del Tenant
+      document.querySelectorAll('.tenant-addon').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const addonId = this.dataset.addon;
+          const isChecked = this.checked;
+          
+          if (addonId === 'sandbox') {
+            // Para sandbox, usar la cantidad actual
+            tenantAddons.set(addonId, cantidadSandbox);
+          } else {
+            // Para otros addons, usar true/false
+            tenantAddons.set(addonId, isChecked);
+          }
+          
+          calcularTotal();
+        });
+      });
+      
+      // Event listeners para controles de sandbox
+      document.querySelectorAll('.btnMenosSandbox').forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (cantidadSandbox > 0) {
+            cantidadSandbox--;
+            document.querySelector('.cantidad-sandbox').value = cantidadSandbox;
+            tenantAddons.set('sandbox', cantidadSandbox);
+            calcularTotal();
+          }
+        });
+      });
+      
+      document.querySelectorAll('.btnMasSandbox').forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (cantidadSandbox < 10) {
+            cantidadSandbox++;
+            document.querySelector('.cantidad-sandbox').value = cantidadSandbox;
+            tenantAddons.set('sandbox', cantidadSandbox);
+            calcularTotal();
+          }
+        });
+      });
+      
+      document.querySelectorAll('.cantidad-sandbox').forEach(input => {
+        input.addEventListener('input', function() {
+          cantidadSandbox = parseInt(this.value) || 0;
+          tenantAddons.set('sandbox', cantidadSandbox);
+          calcularTotal();
         });
       });
       
