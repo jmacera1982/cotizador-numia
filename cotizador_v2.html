@@ -589,7 +589,7 @@
     const costosUnitarios = {
       valorLiveChat: 30,
       valorToken: 0.00350,
-      llmPorConversacion: 2000,
+      llmPorConversacion: 10000,
       margenCustom: 0.30, // 30% de margen
       valorOCR: 0.0080 // $0.0080 por OCR
     };
@@ -1178,10 +1178,14 @@
       const costoOCR = ocr * costosUnitarios.valorOCR;
       
       // Sumar costos y aplicar margen del 30%
-      const costoBase = costoLiveAgents + costoLLM /1000+ costoOCR;
+      const costoBase = costoLiveAgents + costoLLM + costoOCR;
       const precioConMargen = costoBase * (1 + costosUnitarios.margenCustom);
       
-      return Math.round(precioConMargen);
+      // Asegurar precio mínimo de $1,300
+      const precioMinimo = 1300;
+      const precioFinal = Math.max(precioConMargen, precioMinimo);
+      
+      return Math.round(precioFinal);
     }
 
     // Configurar event listeners para configuración Enterprise
@@ -1303,25 +1307,33 @@
     function actualizarDesgloseCustom() {
       const conversacionesElement = document.getElementById('customConversaciones');
       const liveAgentsElement = document.getElementById('customLiveAgents');
+      const ocrElement = document.getElementById('customOCR');
       
-      if (!conversacionesElement || !liveAgentsElement) {
+      if (!conversacionesElement || !liveAgentsElement || !ocrElement) {
         return; // Los elementos no están disponibles aún
       }
       
       const conversaciones = parseInt(conversacionesElement.value) || 100000;
       const liveAgents = parseInt(liveAgentsElement.value) || 10;
+      const ocr = parseInt(ocrElement.value) || 0;
       
       // Calcular costos
       const costoLiveAgents = liveAgents * costosUnitarios.valorLiveChat;
       const cantidadLLM = conversaciones * costosUnitarios.llmPorConversacion;
-      const costoLLM = cantidadLLM * costosUnitarios.valorToken/1000;
-      const costoBase = costoLiveAgents + costoLLM;
+      const costoLLM = cantidadLLM * costosUnitarios.valorToken;
+      const costoOCR = ocr * costosUnitarios.valorOCR;
+      const costoBase = costoLiveAgents + costoLLM + costoOCR;
       const margen = costoBase * costosUnitarios.margenCustom;
-      const total = costoBase + margen;
+      const precioConMargen = costoBase + margen;
+      
+      // Asegurar precio mínimo de $1,300
+      const precioMinimo = 1300;
+      const total = Math.max(precioConMargen, precioMinimo);
       
       // Actualizar elementos del desglose
       const desgloseLiveAgents = document.getElementById('desgloseLiveAgents');
       const desgloseLLM = document.getElementById('desgloseLLM');
+      const desgloseOCR = document.getElementById('desgloseOCR');
       const desgloseCostoBase = document.getElementById('desgloseCostoBase');
       const desgloseMargen = document.getElementById('desgloseMargen');
       const desgloseTotal = document.getElementById('desgloseTotal');
@@ -1331,6 +1343,9 @@
       
       if (desgloseLLM) desgloseLLM.textContent = 
         `${cantidadLLM.toLocaleString()} × $${costosUnitarios.valorToken} = $${costoLLM.toLocaleString()}`;
+      
+      if (desgloseOCR) desgloseOCR.textContent = 
+        `${ocr.toLocaleString()} × $${costosUnitarios.valorOCR} = $${costoOCR.toLocaleString()}`;
       
       if (desgloseCostoBase) desgloseCostoBase.textContent = `$${costoBase.toLocaleString()}`;
       if (desgloseMargen) desgloseMargen.textContent = `$${Math.round(margen).toLocaleString()}`;
