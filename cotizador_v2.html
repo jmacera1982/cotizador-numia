@@ -368,7 +368,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad de Conversaciones Mensuales</label>
-                <input type="number" id="customConversaciones" min="10000" value="100000" 
+                <input type="number" id="customConversaciones" min="10000" value="10000" 
                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
                 <p class="text-xs text-slate-500 mt-1">Mínimo: 10,000 conversaciones</p>
               </div>
@@ -1163,7 +1163,7 @@
         return 1300; // Valor por defecto si los elementos no están disponibles
       }
       
-      const conversaciones = parseInt(conversacionesElement.value) || 100000;
+      const conversaciones = parseInt(conversacionesElement.value) || 10000;
       const liveAgents = parseInt(liveAgentsElement.value) || 10;
       const ocr = parseInt(ocrElement.value) || 0;
       
@@ -1171,7 +1171,7 @@
       const costoLiveAgents = liveAgents * costosUnitarios.valorLiveChat;
       
       // Calcular costo de LLM (conversaciones × LLM por conversación × valor del token)
-      const cantidadLLM = conversaciones * costosUnitarios.llmPorConversacion;
+      const cantidadLLM = conversaciones * costosUnitarios.llmPorConversacion/1000;
       const costoLLM = cantidadLLM * costosUnitarios.valorToken;
       
       // Calcular costo de OCR
@@ -1313,13 +1313,13 @@
         return; // Los elementos no están disponibles aún
       }
       
-      const conversaciones = parseInt(conversacionesElement.value) || 100000;
+      const conversaciones = parseInt(conversacionesElement.value) || 10000;
       const liveAgents = parseInt(liveAgentsElement.value) || 10;
       const ocr = parseInt(ocrElement.value) || 0;
       
       // Calcular costos
       const costoLiveAgents = liveAgents * costosUnitarios.valorLiveChat;
-      const cantidadLLM = conversaciones * costosUnitarios.llmPorConversacion;
+      const cantidadLLM = conversaciones * costosUnitarios.llmPorConversacion/1000;
       const costoLLM = cantidadLLM * costosUnitarios.valorToken;
       const costoOCR = ocr * costosUnitarios.valorOCR;
       const costoBase = costoLiveAgents + costoLLM + costoOCR;
@@ -1342,7 +1342,7 @@
         `${liveAgents} × $${costosUnitarios.valorLiveChat} = $${costoLiveAgents.toLocaleString()}`;
       
       if (desgloseLLM) desgloseLLM.textContent = 
-        `${cantidadLLM.toLocaleString()} × $${costosUnitarios.valorToken} = $${costoLLM.toLocaleString()}`;
+        `${cantidadLLM.toLocaleString()} × $${costosUnitarios.valorToken} /1000= $${costoLLM.toLocaleString()}`;
       
       if (desgloseOCR) desgloseOCR.textContent = 
         `${ocr.toLocaleString()} × $${costosUnitarios.valorOCR} = $${costoOCR.toLocaleString()}`;
