@@ -171,6 +171,42 @@
                 </button>
               </div>
             </div>
+            
+            <!-- Citas -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">📅</span>
+                  <span class="text-sm font-medium">Citas</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$50</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-2">Sistema de gestión de citas</p>
+              <p class="text-xs text-orange-600 mb-3">⚠️ Debe incluir la cantidad de sucursales para que este componente impacte en el precio</p>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                       data-addon="citas">
+                <span class="text-sm text-slate-700">Incluir</span>
+              </div>
+            </div>
+            
+            <!-- Fila Virtual -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🎯</span>
+                  <span class="text-sm font-medium">Fila Virtual</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$50</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-2">Sistema de fila virtual</p>
+              <p class="text-xs text-orange-600 mb-3">⚠️ Debe incluir la cantidad de sucursales para que este componente impacte en el precio</p>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                       data-addon="fila-virtual">
+                <span class="text-sm text-slate-700">Incluir</span>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -232,6 +268,15 @@
                     <span class="text-green-600">•</span>
                     <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
                   </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agentes de cita Numia <strong class="text-green-600">✓</strong></span>
+                  </div> 
+                   <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agentes de turnos Numia <strong class="text-green-600">✓</strong></span>
+                  </div>
+    
                 </div>
               </div>
             </div>
@@ -265,6 +310,14 @@
                   <div class="flex items-center gap-2">
                     <span class="text-green-600">•</span>
                     <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agentes de cita Numia <strong class="text-green-600">✓</strong></span>
+                  </div> 
+                   <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agentes de turnos Numia <strong class="text-green-600">✓</strong></span>
                   </div>
                 </div>
               </div>
@@ -304,6 +357,14 @@
                     <span class="text-green-600">•</span>
                     <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
                   </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agentes de cita Numia <strong class="text-green-600">✓</strong></span>
+                  </div> 
+                   <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agentes de turnos Numia <strong class="text-green-600">✓</strong></span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -342,6 +403,14 @@
                     <span class="text-green-600">•</span>
                     <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
                   </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agentes de cita Numia <strong class="text-green-600">✓</strong></span>
+                  </div> 
+                   <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agentes de turnos Numia <strong class="text-green-600">✓</strong></span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -353,6 +422,16 @@
               <span class="text-yellow-600 text-sm">⚠️</span>
               <div class="text-sm text-yellow-800">
                 <strong>Nota importante sobre WhatsApp:</strong> La integración con WhatsApp no incluye el costo de la cuenta de WhatsApp Business ni las interacciones/mensajes. Estos costos son adicionales y deben ser gestionados directamente con WhatsApp.
+              </div>
+            </div>
+          </div>
+          
+          <!-- Nota sobre Agentes de Citas y Turnos -->
+          <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex items-start gap-2">
+              <span class="text-blue-600 text-sm">ℹ️</span>
+              <div class="text-sm text-blue-800">
+                <strong>Requisito para Agentes de Citas y Turnos:</strong> Los agentes de cita Numia y agentes de turnos Numia requieren que el cliente tenga contratados los módulos de <strong>Citas</strong> y <strong>Fila Virtual</strong> en la sección Tenant para funcionar correctamente.
               </div>
             </div>
           </div>
@@ -660,6 +739,8 @@
       tenantAddons.set('sms', false);
       tenantAddons.set('whatsapp', false);
       tenantAddons.set('sandbox', 0);
+      tenantAddons.set('citas', false);
+      tenantAddons.set('fila-virtual', false);
     }
 
     // Renderizar planes
@@ -1243,6 +1324,12 @@
       }
       if (tenantAddons.get('sandbox')) {
         precioTenant += 100 * tenantAddons.get('sandbox'); // Sandbox
+      }
+      if (tenantAddons.get('citas')) {
+        precioTenant += 50 * totalSucursales; // Citas × cantidad de sucursales
+      }
+      if (tenantAddons.get('fila-virtual')) {
+        precioTenant += 50 * totalSucursales; // Fila Virtual × cantidad de sucursales
       }
 
       const subtotal = precioBase + precioCaracteristicas + precioJB + precioTenant;
