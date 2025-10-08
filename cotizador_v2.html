@@ -624,6 +624,14 @@
         precio: 50,
         icono: '📺',
         esCantidad: true // Indica que esta característica requiere cantidad
+      },
+      {
+        id: 'voz',
+        nombre: 'Voz',
+        descripcion: 'Servicio de voz con opción entrante o saliente',
+        precio: 0.6, // Precio por hora
+        icono: '📞',
+        esVoz: true // Indica que esta característica es de voz y requiere configuración especial
       }
     ];
 
@@ -789,6 +797,32 @@
                         </button>
                         <span class="text-xs text-slate-500 ml-2">cantidad</span>
                       </div>
+                    ` : caracteristica.esVoz ? `
+                      <div class="space-y-3">
+                        <div class="flex items-center gap-2">
+                          <input type="checkbox" class="caracteristica-sucursal w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
+                                 data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${estaSeleccionada ? 'checked' : ''}>
+                          <span class="text-sm text-slate-700">Incluir</span>
+                        </div>
+                        ${estaSeleccionada ? `
+                          <div class="space-y-2">
+                            <div>
+                              <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de llamada:</label>
+                              <select class="tipo-voz w-full text-sm border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                      data-plan="${planId}" data-caracteristica="${caracteristica.id}">
+                                <option value="entrante" ${caracteristicasSucursal.get('voz-tipo') === 'entrante' ? 'selected' : ''}>Entrante ($0.6/hora)</option>
+                                <option value="saliente" ${caracteristicasSucursal.get('voz-tipo') === 'saliente' ? 'selected' : ''}>Saliente (Precio especial)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-600 mb-1">Total de horas:</label>
+                              <input type="number" min="1" max="1000" value="${caracteristicasSucursal.get('voz-horas') || 1}" 
+                                     class="horas-voz w-full text-sm border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                     data-plan="${planId}" data-caracteristica="${caracteristica.id}" />
+                            </div>
+                          </div>
+                        ` : ''}
+                      </div>
                     ` : `
                       <div class="flex items-center gap-2">
                         <input type="checkbox" class="caracteristica-sucursal w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
@@ -870,8 +904,20 @@
           
           if (this.checked) {
             data.caracteristicas.set(caracteristicaId, 1);
+            
+            // Si es la característica de voz, inicializar valores por defecto
+            if (caracteristicaId === 'voz') {
+              data.caracteristicas.set('voz-tipo', 'entrante');
+              data.caracteristicas.set('voz-horas', 1);
+            }
           } else {
             data.caracteristicas.delete(caracteristicaId);
+            
+            // Si es la característica de voz, eliminar también los valores relacionados
+            if (caracteristicaId === 'voz') {
+              data.caracteristicas.delete('voz-tipo');
+              data.caracteristicas.delete('voz-horas');
+            }
             
             // Si se desmarca videollamada, eliminar características dependientes
             if (caracteristicaId === 'videollamada') {
@@ -937,6 +983,35 @@
           
           sucursalesSeleccionadas.set(planId, data);
           renderSucursales();
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      // Event listeners para configuración de voz
+      container.querySelectorAll('.tipo-voz').forEach(select => {
+        select.addEventListener('change', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const tipoVoz = this.value;
+          
+          data.caracteristicas.set('voz-tipo', tipoVoz);
+          sucursalesSeleccionadas.set(planId, data);
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      container.querySelectorAll('.horas-voz').forEach(input => {
+        input.addEventListener('input', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const horas = parseInt(this.value) || 1;
+          
+          data.caracteristicas.set('voz-horas', horas);
+          sucursalesSeleccionadas.set(planId, data);
           actualizarResumen();
           calcularTotal();
         });
@@ -1034,7 +1109,17 @@
                 <div class="border-t border-white/20 pt-3">
                   <div class="text-sm opacity-80 mb-2">Características:</div>
                   ${Array.from(caracteristicasSucursal.entries()).map(([caracteristicaId, cantidadCaracteristica]) => {
+                    // Solo procesar características que existen en el array caracteristicas
+                    // Ignorar características especiales como 'voz-tipo' y 'voz-horas'
+                    if (caracteristicaId === 'voz-tipo' || caracteristicaId === 'voz-horas') {
+                      return '';
+                    }
+                    
                     const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
+                    if (!caracteristica) {
+                      return '';
+                    }
+                    
                     let totalCaracteristica = 0;
                     let descripcionCalculo = '';
                     
@@ -1042,6 +1127,18 @@
                       // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
                       totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
                       descripcionCalculo = `(${cantidadCaracteristica} pantallas)`;
+                    } else if (caracteristica.esVoz) {
+                      // Para características de voz: calcular según tipo y horas
+                      const tipoVoz = caracteristicasSucursal.get('voz-tipo') || 'entrante';
+                      const horasVoz = caracteristicasSucursal.get('voz-horas') || 1;
+                      
+                      if (tipoVoz === 'entrante') {
+                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios;
+                        descripcionCalculo = `(${horasVoz} horas entrantes × ${plan.usuarios} usuarios)`;
+                      } else if (tipoVoz === 'saliente') {
+                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios;
+                        descripcionCalculo = `(${horasVoz} horas salientes × ${plan.usuarios} usuarios)`;
+                      }
                     } else {
                       // Para características normales: precio × usuarios × cantidad_sucursales
                       totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad;
@@ -1094,11 +1191,29 @@
         
         // Características específicas para este tipo de sucursal
         caracteristicasSucursal.forEach((cantidadCaracteristica, caracteristicaId) => {
+          // Solo procesar características que existen en el array caracteristicas
+          // Ignorar características especiales como 'voz-tipo' y 'voz-horas'
+          if (caracteristicaId === 'voz-tipo' || caracteristicaId === 'voz-horas') {
+            return;
+          }
+          
           const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
           if (caracteristica) {
             if (caracteristica.esCantidad) {
               // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
               precioCaracteristicas += caracteristica.precio * cantidadCaracteristica * cantidad;
+            } else if (caracteristica.esVoz) {
+              // Para características de voz: calcular según tipo y horas
+              const tipoVoz = caracteristicasSucursal.get('voz-tipo') || 'entrante';
+              const horasVoz = caracteristicasSucursal.get('voz-horas') || 1;
+              
+              if (tipoVoz === 'entrante') {
+                // Entrante: $0.6 por hora × horas × cantidad de usuarios
+                precioCaracteristicas += caracteristica.precio * horasVoz * plan.usuarios;
+              } else if (tipoVoz === 'saliente') {
+                // Saliente: precio especial (por ahora usar el mismo precio)
+                precioCaracteristicas += caracteristica.precio * horasVoz * plan.usuarios;
+              }
             } else {
               // Para características normales: precio × usuarios × cantidad_sucursales
               precioCaracteristicas += caracteristica.precio * plan.usuarios * cantidad;
