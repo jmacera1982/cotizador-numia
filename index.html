@@ -3,2289 +3,765 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cotizador Numia</title>
+  <title>JB Chatbot - Cotizador</title>
   <!-- Google Fonts - Hanken Grotesk -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- jsPDF + autotable -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
-    /* scroll for long sections */
-    .scroll-smooth { scroll-behavior: smooth; }
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; }
-
-    /* Apply Hanken Grotesk font to all elements */
     * {
       font-family: 'Hanken Grotesk', sans-serif;
     }
     
-    /* Filter styles */
-    .filter-named, .filter-concurrent, .filter-all {
-      transition: all 0.3s ease;
+    .price-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     
-    .filter-named[style*="display: none"], 
-    .filter-concurrent[style*="display: none"] {
-      opacity: 0;
-      transform: translateY(-10px);
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
     }
-    
-    .filter-named, .filter-concurrent, .filter-all {
-      opacity: 1;
-      transform: translateY(0);
+    input[type=number] { 
+      -moz-appearance: textfield; 
     }
-    
-.JB {
- position: fixed;
-bottom: 24px;
-right: 24px;
-z-index: 9999;
-
-      }
-
-
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800" style="font-family: 'Hanken Grotesk', sans-serif;">
-  <header class="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 text-slate-800">
+  <header class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <img src="images/numia.png" alt="Logo Numia" class="h-10 w-auto" />
-        <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">Cotizador Numia</h1>
+        <div class="text-3xl">🤖</div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">JB Chatbot - Cotizador</h1>
+          <p class="text-sm text-slate-600">Solución de chatbot inteligente</p>
+        </div>
       </div>
-      <div class="flex items-center gap-3">
-        <label class="text-sm flex items-center gap-2">Cliente
-          <input id="cliente" type="text" placeholder="Nombre de cliente" class="px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <div class="flex items-center gap-4">
+        <label class="text-sm flex items-center gap-2">
+          Cliente
+          <input id="cliente" type="text" placeholder="Nombre de cliente" 
+                 class="px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </label>
-        <button id="btnGenerarPDF" class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm">Generar PDF</button>
+        <button id="btnGenerarPDF" 
+                class="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg transition-all duration-200">
+          Generar PDF
+        </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- IZQUIERDA: Catálogo -->
-    <section class="lg:col-span-2 space-y-6" id="catalogo">
-      <!-- Secciones renderizadas por JS -->
-    </section>
-
-    <!-- DERECHA: Resumen -->
-    <aside class="lg:col-span-1">
-      <div class="sticky top-20 space-y-6">
-        <div class="bg-white rounded-2xl shadow p-5">
-          <h2 class="text-lg font-semibold mb-3">Resumen</h2>
-          <div class="flex items-center justify-between mb-2">
-            <label class="flex items-center gap-2 text-sm">
-              <input id="chkSandbox" type="checkbox" class="rounded" checked>
-              Aplicar <span class="font-medium">Sandbox 15% (licencias)</span>
-            </label>
-          </div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="flex items-center gap-2 text-sm">
-              Cantidad de ambientes Sandbox:
-              <input id="qtySandbox" type="number" min="1" value="1" class="w-20 px-2 py-1 rounded border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </label>
-          </div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="flex items-center gap-2 text-sm">
-              Descuento general:
-              <select id="tipoDescuento" class="px-2 py-1 rounded border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="porcentaje">%</option>
-                <option value="monto">$</option>
-              </select>
-              <input id="valorDescuento" type="number" min="0" step="0.01" value="0" class="w-20 px-2 py-1 rounded border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </label>
-          </div>
-          <div class="border-t pt-3 mb-3">
-            <div class="flex items-center justify-between mb-2">
-              <h4 class="text-sm font-medium">Descuentos por categoría:</h4>
-              <button id="toggleDescuentosCategorias" class="text-xs text-blue-600 hover:text-blue-800 underline">
-                Mostrar
-              </button>
-            </div>
-            <div id="descuentosCategorias" class="space-y-2 hidden">
-              <!-- Los descuentos por categoría se generarán dinámicamente -->
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Configuración de JB Chatbot -->
+    <section class="mb-8">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-2xl font-bold mb-6">Configuración de JB Chatbot</h3>
+        
+        <!-- Configuración de JB Chatbot -->
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-8 border border-purple-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="text-3xl">🤖</div>
+            <div>
+              <h4 class="text-lg font-semibold text-slate-800">JB Chatbot</h4>
+              <p class="text-slate-600 text-sm">Solución de chatbot inteligente para tu organización</p>
             </div>
           </div>
-          <div id="resumenItems" class="text-sm divide-y divide-slate-200 mb-3"></div>
-          <dl class="text-sm space-y-1">
-            <div class="flex justify-between"><dt>Subtotal mensual</dt><dd id="subMensual" class="font-medium">$0.00</dd></div>
-            <div class="flex justify-between"><dt>Sandbox 15% × <span id="sandboxQtyDisplay">1</span> ambiente(s)</dt><dd id="sandboxRow" class="font-medium">$0.00</dd></div>
-            <div class="flex justify-between"><dt>Descuento general</dt><dd id="descuentoRow" class="font-medium text-red-600">-$0.00</dd></div>
-            <div class="flex justify-between"><dt>Descuentos por categoría</dt><dd id="descuentosCategoriasRow" class="font-medium text-red-600">-$0.00</dd></div>
-            <div class="flex justify-between"><dt>Subtotal único</dt><dd id="subUnico" class="font-medium">$0.00</dd></div>
-            <div class="border-t pt-2 flex justify-between text-base font-semibold"><dt>Total primer mes</dt><dd id="totalPrimerMes">$0.00</dd></div>
-          </dl>
-          <p class="text-xs text-slate-500 mt-3">Notas: precios en USD. Items con “Sujeto a aprobación” pueden variar. SSO se incluye sin costo en contratos ≥ $500 MRR.</p>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow p-5">
-          <h3 class="text-sm font-semibold mb-2">Notas para la cotización</h3>
-          <textarea id="notas" rows="5" class="w-full rounded-xl border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Condiciones, alcance, vigencia, observaciones..."></textarea>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="jbPlans">
+            <!-- Starter -->
+            <div class="bg-white rounded-lg p-4 border-2 border-transparent hover:border-purple-300 transition-all cursor-pointer jb-plan" data-plan="starter">
+              <div class="text-center">
+                <h5 class="font-semibold text-lg mb-2">Starter</h5>
+                <div class="text-2xl font-bold text-purple-600 mb-4">$400</div>
+                <div class="text-left space-y-1 text-sm text-slate-600">
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agente de IA: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span># de Agentes de IA: <strong>1</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Live Agent: <strong class="text-red-800">No</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>LLM (GPT‑4o mini): <strong>1M</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Conversaciones: <strong>500/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+            
+            <!-- Professional -->
+            <div class="bg-white rounded-lg p-4 border-2 border-transparent hover:border-purple-300 transition-all cursor-pointer jb-plan" data-plan="professional">
+              <div class="text-center">
+                <h5 class="font-semibold text-lg mb-2">Professional</h5>
+                <div class="text-2xl font-bold text-purple-600 mb-4">$800</div>
+                <div class="text-left space-y-1 text-sm text-slate-600">
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agente de IA: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span># de Agentes de IA: <strong class="text-green-600">10</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Live Agent: <strong>3</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>LLM (GPT‑4o mini): <strong>3M</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Conversaciones: <strong>3000/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+            
+            <!-- Enterprise -->
+            <div class="bg-white rounded-lg p-4 border-2 border-transparent hover:border-purple-300 transition-all cursor-pointer jb-plan" data-plan="enterprise">
+              <div class="text-center">
+                <h5 class="font-semibold text-lg mb-2">Enterprise</h5>
+                <div class="text-2xl font-bold text-purple-600 mb-4">$1600</div>
+                <div class="text-left space-y-1 text-sm text-slate-600">
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agente de IA: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span># de Agentes de IA: <strong class="text-green-600">Ilimitado</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Live Agent: <strong>10</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>LLM (GPT‑4o mini): <strong>10M</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Conversaciones: <strong>10,000/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>OCR: <strong>0/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+            
+            <!-- Custom -->
+            <div class="bg-white rounded-lg p-4 border-2 border-transparent hover:border-purple-300 transition-all cursor-pointer jb-plan" data-plan="custom">
+              <div class="text-center">
+                <h5 class="font-semibold text-lg mb-2">Custom</h5>
+                <div class="text-2xl font-bold text-purple-600 mb-4">$3000</div>
+                <div class="text-left space-y-1 text-sm text-slate-600">
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agente de IA: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span># de Agentes de IA: <strong class="text-green-600">Ilimitado</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Live Agent: <strong>10</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>LLM (GPT‑4o mini): <strong>200M</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Conversaciones (mínimas): <strong>30,000/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>OCR: <strong>0/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Nota sobre WhatsApp -->
+          <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start gap-2">
+              <span class="text-yellow-600 text-sm">⚠️</span>
+              <div class="text-sm text-yellow-800">
+                <strong>Nota importante sobre WhatsApp:</strong> La integración con WhatsApp no incluye el costo de la cuenta de WhatsApp Business ni las interacciones/mensajes. Estos costos son adicionales y deben ser gestionados directamente con WhatsApp.
+              </div>
+          
+            </div>
+          </div>
+          
+          <!-- Nota sobre Agentes de Citas y Turnos -->
+              <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start gap-2">
+              <span class="text-yellow-600 text-sm">⚠️</span>
+              <div class="text-sm text-yellow-800">
+                <strong>Integraciones en JB:</strong>Para cada integración en JB se deben considerar 50 horas de desarrolllo.
+                
+              </div>
+            </div>
+          </div>
+          
+          <!-- Configuración Enterprise (se muestra solo si se selecciona Enterprise) -->
+          <div id="enterpriseConfig" class="mt-6 p-4 bg-white rounded-lg border border-purple-200" style="display: none;">
+            <h6 class="font-semibold text-slate-800 mb-4">Configuración Enterprise</h6>
+            <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad de OCR Mensual</label>
+                <input type="number" id="enterpriseOCR" min="0" value="0" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <p class="text-xs text-slate-500 mt-1">Mínimo: 0 OCR</p>
+              </div>
+            </div>
+            
+            <!-- Desglose del cálculo Enterprise -->
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h7 class="font-semibold text-slate-700 mb-3 block">Desglose del Cálculo Enterprise</h7>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span>Plan Base:</span>
+                  <span>$1600</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>OCR:</span>
+                  <span id="desgloseEnterpriseOCR">0 × $0.008 = $0</span>
+                </div>
+                <div class="flex justify-between font-semibold border-t pt-2">
+                  <span>Total:</span>
+                  <span id="desgloseEnterpriseTotal">$1600</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Configuración Custom (se muestra solo si se selecciona Custom) -->
+          <div id="customConfig" class="mt-6 p-4 bg-white rounded-lg border border-purple-200" style="display: none;">
+            <h6 class="font-semibold text-slate-800 mb-4">Configuración Personalizada</h6>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad de Conversaciones Mensuales</label>
+                <input type="number" id="customConversaciones" min="10000" value="10000" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <p class="text-xs text-slate-500 mt-1">Mínimo: 10,000 conversaciones</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad de Live Agents</label>
+                <input type="number" id="customLiveAgents" min="1" value="10" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <p class="text-xs text-slate-500 mt-1">Mínimo: 1 Live Agent</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad de OCR Mensual</label>
+                <input type="number" id="customOCR" min="0" value="0" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <p class="text-xs text-slate-500 mt-1">Mínimo: 0 OCR</p>
+              </div>
+            </div>
+            
+            <!-- Desglose del cálculo -->
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h7 class="font-semibold text-slate-700 mb-3 block">Desglose del Cálculo</h7>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span>Live Agents:</span>
+                  <span id="desgloseLiveAgents">10 × $30 = $300</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>LLM (Tokens):</span>
+                  <span id="desgloseLLM">200,000,000 × $0.0035 = $700</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>OCR:</span>
+                  <span id="desgloseOCR">0 × $0.008 = $0</span>
+                </div>
+                <div class="flex justify-between font-semibold border-t pt-2">
+                  <span>Total:</span>
+                  <span id="desgloseTotal">$1,300</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </aside>
-  </main>
+    </section>
 
-  <footer class="max-w-7xl mx-auto px-4 pb-10 text-xs text-slate-500">
-    Basado en la lista "Precios V2.pdf" provista por el cliente. Este cotizador es de ejemplo y puede ajustarse a nuevas versiones.
-  </footer>
-  <script
-        src="https://cdn.jsdelivr.net/gh/debmedia/numiajb-widget@1.0.4/dist/build/static/js/bundle.min.js">
-    </script>
-  <script>
-    // ====== Datos base (extraídos del PDF) ======
-    // Helper para crear items
-    const item = (id, category, name, price, charge, opts={}) => ({ id, category, name, price, charge, unit: opts.unit||'unidad', license: !!opts.license, notes: opts.notes||'', flags: opts.flags||[] });
-
-    // Journey Builder packages data
-    const JB_PACKAGES = {
-      'jb_poc': { name: 'POC', tokens: 3500000, executions: 2500, execCost: 0.01469 },
-      'jb_starter': { name: 'Starter', tokens: 7000000, executions: 5000, execCost: 0.01369 },
-      'jb_pro_plus': { name: 'Pro+', tokens: 14000000, executions: 10000, execCost: 0.01269 },
-      'jb_enterprise': { name: 'Enterprise', tokens: 70000000, executions: 50000, execCost: 0.01169 },
-      'jb_custom_1': { name: 'Custom +1', tokens: 140000000, executions: 100000, execCost: 0.0107   },
-      'jb_custom_2': { name: 'Custom +2', tokens: 350000000, executions: 250000, execCost: 0.0107 },
-      'jb_custom_3': { name: 'Custom +3', tokens: 700000000, executions: 500000, execCost: 0.0107 },
-      'jb_custom_n': { name: 'Custom N', tokens: 1050000000, executions: 750000, execCost: 0.0107 }
-    };
-
-    // Journey Builder models with pricing
-    const JB_MODELS = {
-      'Claude 3.7 Sonnet': 0.009,
-      'Claude 3.5 Sonnet': 0.009,
-      'Claude 3.5 Haiku': 0.0024,
-      'Claude 3 Opus': 0.018,
-      'Claude 3 Haiku': 0.0008,
-      'Amazon Nova Sonic': 0.0048,
-      'Llama 2 Chat (13B)': 0.0012,
-      'Llama 2 Chat (70B)': 0.003,
-      'Mistral 7B': 0.0002,
-      'Mixtral 8x7B': 0.0007,
-      'Mistral Large': 0.0176,
-      'Command': 0.0023,
-      'Command-Light': 0.0005,
-      'Command R+': 0.009,
-      'Command R': 0.0011,
-      'Jamba 1.5 Large': 0.0052,
-      'Jamba 1.5 Mini': 0.0004,
-      'Jurassic-2 Mid': 0.0175,
-      'Jurassic-2 Ultra': 0.0263,
-      'DeepSeek-R1': 0.0035,
-      'GPT‑3.5 Turbo': 0.0018,
-      'GPT‑4': 0.054,
-      'GPT‑4 Turbo': 0.022,
-      'GPT‑4o': 0.011,
-      'GPT‑4o mini': 0.0035
-    };
-
-    const JB_IMPLEMENTATION_PACKS = {
-      'Setup Pack': 8,
-      'Basic': 16,
-      'Extended': 24,
-      'Full': 40,
-      'Custom': 80
-    };
-
-    const CATEGORIAS = [
-      'Sucursales físicas — Licencias - Named (Indicar cantidad de sucursales)',
-      'Sucursales físicas — Licencias -Concurrent  (Indicar cantidad de sucursales)',
-      'Paquetes Sucursales físicas — (Indicar cantidad de sucursales)',
-      'Cartelería — (Indicar cantidad de sucursales)',
-      'Sucursal virtual — Usuarios nominados (Named)',
-      'Sucursal virtual — Usuarios concurrentes',
-      'Add‑ons por sucursal / compañía',
-      'Add‑ons por hora',
-      'Journey Builder',
-      'Servicios profesionales',
-      'Hardware — Alquiler (mensual)',
-            'Paquetes con alquiler dehardware (mensual, sujeto a aprobación)',
-      'Paquetes de hardware'
-    ];
-
-    const CATALOGO = [
-      // Journey Builder - Paquetes
-      item('jb_poc', CATEGORIAS[8], 'Journey Builder — POC', 0, 'monthly', {license:false, notes:'Paquete POC'}),
-      item('jb_starter', CATEGORIAS[8], 'Journey Builder — Starter', 0, 'monthly', {license:false, notes:'Paquete Starter'}),
-      item('jb_pro_plus', CATEGORIAS[8], 'Journey Builder — Pro+', 0, 'monthly', {license:false, notes:'Paquete Pro+'}),
-      item('jb_enterprise', CATEGORIAS[8], 'Journey Builder — Enterprise', 0, 'monthly', {license:false, notes:'Paquete Enterprise'}),
-      item('jb_custom_1', CATEGORIAS[8], 'Journey Builder — Custom +1', 0, 'monthly', {license:false, notes:'Paquete Custom +1'}),
-      item('jb_custom_2', CATEGORIAS[8], 'Journey Builder — Custom +2', 0, 'monthly', {license:false, notes:'Paquete Custom +2'}),
-      item('jb_custom_3', CATEGORIAS[8], 'Journey Builder — Custom +3', 0, 'monthly', {license:false, notes:'Paquete Custom +3'}),
-      item('jb_custom_n', CATEGORIAS[8], 'Journey Builder — Custom N', 0, 'monthly', {license:false, notes:'Paquete Custom N'}),
+    <!-- Resumen y Total -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+          <h3 class="text-2xl font-bold mb-6">Resumen de Configuración</h3>
+          <div id="resumenConfiguracion">
+            <p class="text-slate-600">Selecciona un plan JB para ver el resumen</p>
+          </div>
+        </div>
+      </div>
       
-      // Sucursales físicas — Licencias (mensual)
-      item('phys_5_named', CATEGORIAS[0], 'Numia App — Hasta 5 usuarios (Named)', 80, 'monthly', {license:true, notes:'Incluye 2 licencias de Numia Sign por sucursal; Trámites ilimitados; Hasta 5 funcionarios'}),
-      item('phys_10_named',CATEGORIAS[0], 'Numia App — Hasta 10 usuarios (Named)',120, 'monthly', {license:true, notes:'Incluye 3 licencias de Numia Sign por sucursal; Hasta 10 funcionarios'}),
-      item('phys_30_named',CATEGORIAS[0], 'Numia App — Hasta 30 usuarios (Named)',270, 'monthly', {license:true, notes:'Incluye 4 licencias de Numia Sign por sucursal; Hasta 30 funcionarios'}),
-      item('phys_single_named',CATEGORIAS[0], 'Numia App — Single User (Named)',20, 'monthly', {license:true, notes:'Trámites ilimitados; 1 licencia de cartelería cada 5 usuarios'}),
-  
-  
-      item('phys_5_conc',  CATEGORIAS[1], 'Numia App — Hasta 5 usuarios (Concurrent)', 100, 'monthly', {license:true, notes:'Incluye 2 licencias de Numia Sign por sucursal'}),
-           item('phys_10_conc', CATEGORIAS[1], 'Numia App — Hasta 10 usuarios (Concurrent)',150, 'monthly', {license:true, notes:'Incluye 3 licencias de Numia Sign por sucursal'}),
-          item('phys_30_conc', CATEGORIAS[1], 'Numia App — Hasta 30 usuarios (Concurrent)',338, 'monthly', {license:true, notes:'Incluye 4 licencias de Numia Sign por sucursal'}),
-     
-      item('phys_single_conc', CATEGORIAS[1], 'Numia App — Single User (Concurrent)',25, 'monthly', {license:true}),
-     
-
-        // Bundle por volúmen
-        item('pkg_ilimitado',  CATEGORIAS[2], 'Paquete ilimitado para sucursales presenciales',62, 'monthly', {notes:'Sujeto a aprobación, cantidad minima a 200 sucursales incluye fila virtual, citas y encuestas'}),
-        // Bundle por volúmen
-        item('sign_single', CATEGORIAS[3], 'Numia Sign — Pantalla o Kiosco (por unidad)',25, 'monthly', {license:true}),
-
-        item('pkg_ilimitado_Carteleria',  CATEGORIAS[3], 'Paquete ilimitado para Carteleria retail',62, 'monthly', {notes:'Sujeto a aprobación, cantidad minima a 200 sucursales incluye fila virtual, citas y encuestas'}),
-    
-        
-        // Virtual — Named
-      item('virt_named_st', CATEGORIAS[4], 'Numia Virtual User — Starter (Named)',38, 'monthly', {license:true, notes:'Incluye 40h de video y 40h de grabación/mes'}),
-      item('virt_named_pr', CATEGORIAS[4], 'Numia Virtual User — Professional (Named)',100, 'monthly', {license:true, notes:'Incluye 88h de video y 88h de grabación/mes; Citas incluidas'}),
-      item('virt_named_en', CATEGORIAS[4], 'Numia Virtual User — Enterprise (Named)',123, 'monthly', {license:true, notes:'Incluye 100h de video y 100h de grabación/mes; AI & Survey incl.'}),
-      item('virt_cabin',    CATEGORIAS[4], 'Virtual Cabin',50, 'monthly', {license:false}),
-
-      // Virtual — Concurrent
-      item('virt_conc_st', CATEGORIAS[5], 'Numia Virtual User — Starter (Concurrent)',56, 'monthly', {license:true, notes:'40h video y 40h grabación/mes'}),
-      item('virt_conc_pr', CATEGORIAS[5], 'Numia Virtual User — Professional (Concurrent)',145, 'monthly', {license:true, notes:'88h video y 88h grabación/mes; Citas incluidas'}),
-      item('virt_conc_en', CATEGORIAS[5], 'Numia Virtual User — Enterprise (Concurrent)',178, 'monthly', {license:true, notes:'100h video y 100h grabación/mes; AI & Survey incl.'}),
-
-     
-      // Add-ons por sucursal/compañía (mensual)
-      item('addon_citas_named', CATEGORIAS[6], 'Citas por sucursal (Named) - Hasta 15 Sucursales',50,'monthly', {license:false}),
-      item('addon_citas_conc',  CATEGORIAS[6], 'Citas por sucursal (Concurrent)- Hasta 15 Sucursales',63,'monthly', {license:false}),
-      item('addon_queue_named', CATEGORIAS[6], 'Virtual Queue por sucursal (Named)',50,'monthly', {license:false}),
-      item('addon_queue_conc',  CATEGORIAS[6], 'Virtual Queue por sucursal (Concurrent) - Hasta 15 Sucursales',63,'monthly', {license:false}),
-      item('addon_survey_named',CATEGORIAS[6], 'Survey - Hasta 20 Sucursales — por compañía (Named)',200,'monthly', {license:false}),
-      item('addon_survey_conc', CATEGORIAS[6], 'Survey - Hasta 20 Sucursales  — por compañía (Concurrent)',250,'monthly', {license:false}),
-      item('addon_sso', CATEGORIAS[7], 'SSO',100,'monthly', {license:false, notes:'Incluido en contratos ≥ $500 MRR'}),
-
-      // Virtual App — Add-ons por hora (usar horas/mes)
-      item('va_horas_atencion', CATEGORIAS[7], 'Horas de Atención (video) — Paquete de 20 Horas',11,'hourly-monthly', {license:false}),
-      item('va_horas_grab',     CATEGORIAS[7], 'Horas de Grabación — Paquete de 20 Horas',22,'hourly-monthly', {license:false}),
-      item('va_transcripcion',  CATEGORIAS[7], 'Transcripción — Paquete de 20 Horas',60,'hourly-monthly', {license:false}),
-      item('va_speech',         CATEGORIAS[7], 'Speech Analytics — Paquete de 20 Horas',109,'hourly-monthly', {license:false}),
-      item('va_cobrowse',       CATEGORIAS[7], 'Co‑Browsing — Paquete de 20 Horas',29,'hourly-monthly', {license:false, notes:'Requiere ajuste en la web del cliente para conectar con asesor'}),
-     
-      // Servicios profesionales (one-time)
-      item('va_dev',            CATEGORIAS[9], 'Hora de desarrollo — por hora (mín. paquete de 50h)',50,'onetime'),
-
-      item('svc_param_5',   CATEGORIAS[9], 'Parametrización hasta 5 sucursales físicas (10h, uso hasta 1 mes)',700,'onetime'),
-      item('svc_param_25',  CATEGORIAS[9], 'Parametrización hasta 25 sucursales físicas (50h, uso hasta 2 meses)',3500,'onetime'),
-      item('svc_param_100', CATEGORIAS[9], 'Parametrización hasta 100 sucursales físicas (300h, uso hasta 4 meses)',21000,'onetime'),
-
-      // Implementación JB (one-time) - $50 por hora
-      item('jb_impl_setup',     CATEGORIAS[9], 'Implementación JB — Setup Pack (8 horas)',400,'onetime', {license:false, notes:'Implementación JB - Setup Pack'}),
-      item('jb_impl_basic',     CATEGORIAS[9], 'Implementación JB — Basic (16 horas)',800,'onetime', {license:false, notes:'Implementación JB - Basic'}),
-      item('jb_impl_extended',  CATEGORIAS[9], 'Implementación JB — Extended (24 horas)',1200,'onetime', {license:false, notes:'Implementación JB - Extended'}),
-      item('jb_impl_full',      CATEGORIAS[9], 'Implementación JB — Full (40 horas)',2000,'onetime', {license:false, notes:'Implementación JB - Full'}),
-      item('jb_impl_custom',    CATEGORIAS[9], 'Implementación JB — Custom (80 horas)',4000,'onetime', {license:false, notes:'Implementación JB - Custom'}),
-
-      // Hardware — Compra (one-time)
-      item('hw_buy_tablet',  CATEGORIAS[9], 'Tótem Tablet — COMPRA',1500,'onetime', {notes:'Soporte mensual de HW opcional $50/disp.'}),
-      item('hw_buy_aio',     CATEGORIAS[9], 'All‑in‑One con impresora — COMPRA',1850,'onetime', {notes:'Soporte mensual de HW opcional $50/disp.'}),
-      item('hw_buy_tkiosk',  CATEGORIAS[9], 'Tótem con pantalla interactiva + gabinete + impresora — COMPRA',2500,'onetime', {notes:'Soporte mensual de HW opcional $50/disp.'}),
-      item('hw_buy_player',  CATEGORIAS[9], 'Digital Media Player — COMPRA',450,'onetime'),
-
-      // Hardware — Alquiler (mensual)
-      item('hw_rent_tablet', CATEGORIAS[10], 'Tótem Tablet — ALQUILER (24mín)',90,'monthly', {notes:'Soporte mensual HW $50/disp.'}),
-      item('hw_rent_aio',    CATEGORIAS[10], 'All‑in‑One con impresora — ALQUILER (24mín)',111,'monthly', {notes:'Soporte mensual HW $50/disp.'}),
-      item('hw_rent_tkiosk', CATEGORIAS[10], 'Tótem con pantalla interactiva + gabinete + impresora — ALQUILER (24mín)',150,'monthly', {notes:'Soporte mensual HW $50/disp.'}),
-      item('hw_rent_player', CATEGORIAS[10], 'Digital Media Player — ALQUILER',32,'monthly'),
-      // Soporte mensual HW explícito
-      item('hw_support',     CATEGORIAS[10], 'Soporte mensual de Hardware (por dispositivo)',50,'monthly'),
-
-
-        // Paquetes con hardware (mensual, sujeto a aprobación)
-        item('pkg_5',  CATEGORIAS[11], 'Paquete: AIO con impresora + Licencia + Soporte — hasta 5 usuarios',229, 'monthly', {notes:'Sujeto a aprobación'}),
-        item('pkg_10', CATEGORIAS[11], 'Paquete: AIO con impresora + Licencia + Soporte — hasta 10 usuarios',263, 'monthly', {notes:'Sujeto a aprobación'}),
-        item('pkg_30', CATEGORIAS[11], 'Paquete: AIO con impresora + Licencia + Soporte — hasta 30 usuarios',391, 'monthly', {notes:'Sujeto a aprobación'}),
-        item('pkg_sign_player', CATEGORIAS[11], 'Paquete: Cartelería + Player',53, 'monthly', {notes:'Sujeto a aprobación'}),
-
-        // Journey Builder - Items especiales
-        
-    ];
-
-    // ====== Estado ======
-    const state = {
-      qty: new Map(),            // id -> cantidad (o horas)
-      applySandbox: true,
-      descuentosCategorias: new Map(), // categoria -> {tipo, valor}
-    };
-
-    // ====== Utilidades ======
-    const fmt = (n) => `$${n.toFixed(2)}`;
-    const byCat = (cat) => CATALOGO.filter(i => i.category === cat);
-    
-    // Journey Builder package details functions
-    function calculateProportionalTokens(packageId, customExecutions) {
-      const package = JB_PACKAGES[packageId];
-      if (!package) return 0;
-      
-      // Calculate the ratio of custom executions to original executions
-      const ratio = customExecutions / package.executions;
-      
-      // Apply the ratio to the original tokens
-      const proportionalTokens = Math.round(package.tokens * ratio);
-      
-      console.log('Proportional tokens calculation:', {
-        packageId,
-        originalExecutions: package.executions,
-        customExecutions,
-        originalTokens: package.tokens,
-        ratio,
-        proportionalTokens
-      });
-      
-      return proportionalTokens;
-    }
-
-    function showJBPackageDetails(packageId) {
-      console.log('showJBPackageDetails called with:', packageId);
-      const detailsDiv = document.getElementById('jb_package_details');
-      const package = JB_PACKAGES[packageId];
-      
-      console.log('detailsDiv found:', detailsDiv);
-      console.log('package data:', package);
-      
-      if (detailsDiv && package) {
-        // Format numbers with commas for better readability
-        const formatNumber = (num) => {
-          if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M';
-          } else if (num >= 1000) {
-            return (num / 1000).toFixed(1) + 'K';
-          }
-          return num.toLocaleString('en-US');
-        };
-        
-        const formatCurrency = (num) => `$${num.toFixed(3)}`;
-        
-        const tokensElement = document.getElementById('jb_tokens');
-        const executionsElement = document.getElementById('jb_executions');
-        const totalCostElement = document.getElementById('jb_total_cost');
-        const tokensCostElement = document.getElementById('jb_tokens_cost');
-        const numiaFeeAmountElement = document.getElementById('jb_numia_fee_amount');
-        
-        console.log('Elements found:', { tokensElement, executionsElement, totalCostElement, tokensCostElement, numiaFeeAmountElement });
-        
-        if (tokensElement && executionsElement && totalCostElement && tokensCostElement && numiaFeeAmountElement) {
-          // Check if this is a Custom package
-          const isCustomPackage = packageId.startsWith('jb_custom_');
-          
-          // Initialize actual values
-          let actualExecutions = package.executions;
-          let actualTokens = package.tokens;
-          
-          // Show/hide the custom executions container
-          const customExecutionsContainer = document.getElementById('jb_custom_executions_container');
-          const customExecutionsMain = document.getElementById('jb_custom_executions_main');
-          
-          if (isCustomPackage) {
-            // Show the custom executions field in the main section
-            if (customExecutionsContainer) {
-              customExecutionsContainer.style.display = 'block';
-            }
-            if (customExecutionsMain) {
-              // Only set the value if it's empty or different
-              if (!customExecutionsMain.value || customExecutionsMain.value === '0') {
-                customExecutionsMain.value = package.executions;
-              }
-              console.log('Executions input available, current value:', customExecutionsMain.value);
-              // Ensure the input is enabled and editable
-              customExecutionsMain.disabled = false;
-              customExecutionsMain.readOnly = false;
-            }
-            // Show executions as text in details
-            executionsElement.textContent = formatNumber(package.executions);
-            console.log('Custom package selected - showing executions field');
-          } else {
-            // Hide the custom executions field
-            if (customExecutionsContainer) {
-              customExecutionsContainer.style.display = 'none';
-            }
-            // Show executions as text in details
-            executionsElement.textContent = formatNumber(package.executions);
-          }
-          
-          // Set initial tokens display
-          tokensElement.textContent = formatNumber(actualTokens);
-          
-          // Update actual values for Custom packages
-          if (isCustomPackage) {
-            // For Custom packages, get the value from the main input field
-            if (customExecutionsMain) {
-              actualExecutions = parseInt(customExecutionsMain.value) || package.executions;
-              actualTokens = calculateProportionalTokens(packageId, actualExecutions);
-              
-              // Update the tokens display with proportional value
-              tokensElement.textContent = formatNumber(actualTokens);
-            }
-          }
-          
-          // Calculate total cost: executions × cost per execution
-          const totalCost = actualExecutions * package.execCost;
-          totalCostElement.textContent = formatCurrency(totalCost);
-          
-          // Calculate tokens cost based on selected model and BYO LLM checkbox
-          const selectedModel = document.getElementById('jb_model_select').value;
-          const byoLLM = document.getElementById('jb_byo_llm').checked;
-          console.log('Recalculating with model:', selectedModel, 'BYO LLM:', byoLLM);
-          let tokensCost = 0;
-          let originalTokensCost = 0; // Keep original cost for fee calculation
-          
-          if (selectedModel && JB_MODELS[selectedModel]) {
-            const modelPrice = JB_MODELS[selectedModel];
-            originalTokensCost = (actualTokens / 1000) * modelPrice; // Convert tokens to thousands
-          }
-          
-          if (byoLLM) {
-            // BYO LLM: Costo por tokens se muestra como cero, pero mantenemos el costo original para el fee
-            tokensCost = 0;
-            tokensCostElement.textContent = '$0.000';
-          } else {
-            // Normal mode: Mostrar el costo real
-            tokensCost = originalTokensCost;
-            tokensCostElement.textContent = formatCurrency(tokensCost);
-          }
-          
-          // Calculate Numia Fee using the displayed tokens cost for fee calculation
-          console.log('About to call updateNumiaFee with:', { tokensCost, byoLLM });
-          updateNumiaFee(tokensCost, byoLLM);
-          
-          // Calculate and display recurring cost
-          updateRecurringCost(totalCost, tokensCost, originalTokensCost, byoLLM);
-          
-          // Add event listener for custom executions if it's a custom package
-          if (isCustomPackage) {
-            // Use setTimeout to ensure the DOM element is created before adding the listener
-            setTimeout(() => {
-              addCustomExecutionsListener();
-            }, 200);
-          }
-          
-          // Section is always visible now, no need to remove hidden class
-          console.log('Package details updated successfully');
-          
-          // Update flows table
-          updateFlowsTable();
-        } else {
-          console.error('Some elements not found');
-        }
-      } else {
-        console.error('detailsDiv or package not found');
-      }
-    }
-
-    // Function to add event listener for custom executions input
-    function addCustomExecutionsListener() {
-      const customExecutionsMain = document.getElementById('jb_custom_executions_main');
-      console.log('Looking for jb_custom_executions_main element:', customExecutionsMain);
-      
-      if (customExecutionsMain) {
-        console.log('Adding event listener for jb_custom_executions_main');
-        
-        // Remove any existing event listeners to avoid duplicates
-        const newInput = customExecutionsMain.cloneNode(true);
-        customExecutionsMain.parentNode.replaceChild(newInput, customExecutionsMain);
-        
-        // Add the event listener to the new element
-        newInput.addEventListener('input', () => {
-          const selectedPackage = document.getElementById('jb_package_select').value;
-          console.log('Custom executions changed to:', newInput.value, 'recalculating package details');
-          
-          // Recalculate package details with new executions
-          showJBPackageDetails(selectedPackage);
-        });
-        
-        console.log('Event listener added successfully');
-      } else {
-        console.error('jb_custom_executions_main element not found when trying to add listener');
-      }
-    }
-    
-    // Function to update Numia Fee calculation
-    function updateNumiaFee(tokensCost, byoLLM = false) {
-      console.log('updateNumiaFee called with:', { tokensCost, byoLLM });
-      
-      let feePercent;
-      if (byoLLM) {
-        feePercent = 15;
-        console.log('BYO LLM marcado: using 15% fee');
-      } else {
-        feePercent = 30;
-        console.log('BYO LLM desmarcado: using 30% fee');
-      }
-      
-      const numiaFeeAmount = tokensCost * (feePercent / 100);
-      console.log(`Calculating: ${tokensCost} * (${feePercent} / 100) = ${numiaFeeAmount}`);
-      
-      const formattedAmount = fmt(numiaFeeAmount);
-      console.log('Formatted amount:', formattedAmount);
-      
-      // Try multiple ways to find and update the element
-      const selectors = [
-        '#jb_numia_fee_amount',
-        '#jb_package_details .text-lg.font-semibold.text-blue-800:last-child',
-        '#jb_package_details div:last-child .text-lg.font-semibold.text-blue-800',
-        'div[id="jb_package_details"] div:last-child .text-lg.font-semibold.text-blue-800'
-      ];
-      
-      let elementUpdated = false;
-      
-      selectors.forEach((selector, index) => {
-        const element = document.querySelector(selector);
-        console.log(`Trying selector ${index + 1}: ${selector}`, element);
-        
-        if (element) {
-          element.textContent = formattedAmount;
-          element.innerHTML = formattedAmount;
-          console.log(`Updated element with selector ${index + 1}:`, element.textContent);
-          elementUpdated = true;
-        }
-      });
-      
-      // Also try to update the input field
-      const numiaFeePercentInput = document.getElementById('jb_numia_fee_percent');
-      if (numiaFeePercentInput) {
-        numiaFeePercentInput.value = feePercent;
-        console.log('Updated input field to:', feePercent);
-      }
-      
-      if (!elementUpdated) {
-        console.error('Could not find any element to update!');
-        // Try to create a temporary element to test
-        const testDiv = document.createElement('div');
-        testDiv.textContent = `TEST: ${formattedAmount}`;
-        testDiv.style.position = 'fixed';
-        testDiv.style.top = '10px';
-        testDiv.style.right = '10px';
-        testDiv.style.background = 'red';
-        testDiv.style.color = 'white';
-        testDiv.style.padding = '10px';
-        testDiv.style.zIndex = '9999';
-        document.body.appendChild(testDiv);
-        setTimeout(() => document.body.removeChild(testDiv), 3000);
-      }
-      
-      console.log(`Fee por utilización de tokens calculated: ${feePercent}% of $${tokensCost.toFixed(3)} = $${numiaFeeAmount.toFixed(3)} (BYO LLM: ${byoLLM})`);
-      
-      // Update recurring cost when fee changes
-      updateRecurringCostFromFee(tokensCost, byoLLM);
-    }
-
-    // Function to update flows table calculations
-    function updateFlowsTable() {
-      console.log('updateFlowsTable called');
-      const selectedPackage = document.getElementById('jb_package_select')?.value;
-      console.log('Selected package:', selectedPackage);
-      
-      if (!selectedPackage || !JB_PACKAGES[selectedPackage]) {
-        // Hide or reset flows table if no package selected
-        const flowsTable = document.getElementById('jb_flows_table');
-        console.log('No package selected, hiding flows table:', flowsTable);
-        if (flowsTable) {
-          flowsTable.style.display = 'none';
-        }
-        return;
-      }
-      
-      const package = JB_PACKAGES[selectedPackage];
-      const isCustomPackage = selectedPackage.startsWith('jb_custom_');
-      
-      // Get actual executions (from custom input if it's a custom package)
-      let actualExecutions = package.executions;
-      if (isCustomPackage) {
-        const customExecutionsMain = document.getElementById('jb_custom_executions_main');
-        if (customExecutionsMain && customExecutionsMain.value) {
-          actualExecutions = parseInt(customExecutionsMain.value) || package.executions;
-        }
-      }
-      
-      // Flow execution values (fixed)
-      const flows = {
-        knowledge: 18,
-        appointment: 7,
-        virtual: 7,
-        combined: 25
-      };
-      
-      // Calculate conversations for each flow
-      const knowledgeConversations = Math.floor(actualExecutions / flows.knowledge);
-      const appointmentConversations = Math.floor(actualExecutions / flows.appointment);
-      const virtualConversations = Math.floor(actualExecutions / flows.virtual);
-      const combinedConversations = Math.floor(actualExecutions / flows.combined);
-      
-      // Update the table
-      const knowledgeElement = document.getElementById('jb_flows_knowledge');
-      const appointmentElement = document.getElementById('jb_flows_appointment');
-      const virtualElement = document.getElementById('jb_flows_virtual');
-      const combinedElement = document.getElementById('jb_flows_combined');
-      
-      if (knowledgeElement) knowledgeElement.textContent = knowledgeConversations.toLocaleString();
-      if (appointmentElement) appointmentElement.textContent = appointmentConversations.toLocaleString();
-      if (virtualElement) virtualElement.textContent = virtualConversations.toLocaleString();
-      if (combinedElement) combinedElement.textContent = combinedConversations.toLocaleString();
-      
-      // Show the flows table
-      const flowsTable = document.getElementById('jb_flows_table');
-      console.log('Flows table element found:', flowsTable);
-      if (flowsTable) {
-        flowsTable.style.display = 'block';
-        console.log('Flows table displayed');
-      } else {
-        console.error('Flows table element not found!');
-      }
-      
-      console.log('Flows table updated with executions:', actualExecutions);
-    }
-
-    function getCurrentJBValues() {
-      const selectedPackage = document.getElementById('jb_package_select')?.value;
-      const selectedModel = document.getElementById('jb_model_select')?.value;
-      const byoLLM = document.getElementById('jb_byo_llm')?.checked || false;
-      
-      if (!selectedPackage || !JB_PACKAGES[selectedPackage]) {
-        return null;
-      }
-      
-      // If no model is selected, use a default model for calculations
-      const modelToUse = selectedModel && JB_MODELS[selectedModel] ? selectedModel : 'Claude 3.5 Sonnet';
-      
-      const package = JB_PACKAGES[selectedPackage];
-      const isCustomPackage = selectedPackage.startsWith('jb_custom_');
-      
-      let actualExecutions = package.executions;
-      let actualTokens = package.tokens;
-      
-      if (isCustomPackage) {
-        const customExecutionsMain = document.getElementById('jb_custom_executions_main');
-        if (customExecutionsMain) {
-          actualExecutions = parseInt(customExecutionsMain.value) || package.executions;
-          actualTokens = calculateProportionalTokens(selectedPackage, actualExecutions);
-        }
-      }
-      
-      const totalCost = actualExecutions * package.execCost;
-      const originalTokensCost = (actualTokens / 1000) * JB_MODELS[modelToUse];
-      const tokensCost = byoLLM ? 0 : originalTokensCost;
-      
-      return {
-        totalCost,
-        tokensCost,
-        originalTokensCost,
-        actualExecutions,
-        actualTokens,
-        byoLLM
-      };
-    }
-
-    function updateRecurringCostFromFee(originalTokensCost, byoLLM) {
-      console.log('updateRecurringCostFromFee called with:', { originalTokensCost, byoLLM });
-      
-      // Get current JB values using the helper function
-      const jbValues = getCurrentJBValues();
-      if (!jbValues) {
-        console.error('Could not get current JB values');
-        return;
-      }
-      
-      // Calculate fee amount
-      const feePercent = byoLLM ? 15 : 30;
-      const numiaFeeAmount = jbValues.tokensCost * (feePercent / 100);
-      
-      // Calculate recurring cost
-      const recurringCost = jbValues.totalCost + jbValues.tokensCost + numiaFeeAmount;
-      
-      console.log('Recurring cost calculation from fee update:', {
-        totalCost: jbValues.totalCost,
-        tokensCost: jbValues.tokensCost,
-        numiaFeeAmount,
-        recurringCost
-      });
-      
-      // Update the recurring cost element
-      const recurringCostElement = document.getElementById('jb_recurring_cost');
-      if (recurringCostElement) {
-        const formattedRecurringCost = fmt(recurringCost);
-        recurringCostElement.textContent = formattedRecurringCost;
-        console.log('Recurring cost updated from fee change to:', formattedRecurringCost);
-      } else {
-        console.error('jb_recurring_cost element not found in updateRecurringCostFromFee');
-      }
-    }
-
-    function updateRecurringCost(totalCost, tokensCost, originalTokensCost, byoLLM) {
-      console.log('updateRecurringCost called with:', { totalCost, tokensCost, originalTokensCost, byoLLM });
-      
-      // Get current JB values to ensure we're using the most up-to-date values
-      const jbValues = getCurrentJBValues();
-      if (!jbValues) {
-        console.error('Could not get current JB values in updateRecurringCost');
-        return;
-      }
-      
-      // Use the current values instead of the parameters
-      const currentTotalCost = jbValues.totalCost;
-      const currentTokensCost = jbValues.tokensCost;
-      const currentOriginalTokensCost = jbValues.originalTokensCost;
-      const currentByoLLM = jbValues.byoLLM;
-      
-      // Calculate fee amount (same logic as updateNumiaFee)
-      const feePercent = currentByoLLM ? 15 : 30;
-      const numiaFeeAmount = currentTokensCost * (feePercent / 100);
-      
-      // Calculate recurring cost: Costo Total + Costo por Tokens + Fee por utilización de tokens
-      const recurringCost = currentTotalCost + currentTokensCost + numiaFeeAmount;
-      
-      console.log('Recurring cost calculation with current values:', {
-        currentTotalCost,
-        currentTokensCost,
-        currentOriginalTokensCost,
-        currentByoLLM,
-        feePercent,
-        numiaFeeAmount,
-        recurringCost
-      });
-      
-      // Update the recurring cost element
-      const recurringCostElement = document.getElementById('jb_recurring_cost');
-      if (recurringCostElement) {
-        const formattedRecurringCost = fmt(recurringCost);
-        recurringCostElement.textContent = formattedRecurringCost;
-        console.log('Recurring cost updated to:', formattedRecurringCost);
-      } else {
-        console.error('jb_recurring_cost element not found');
-      }
-    }
-
-    function hideJBPackageDetails() {
-      console.log('hideJBPackageDetails called - clearing values');
-      const tokensElement = document.getElementById('jb_tokens');
-      const executionsElement = document.getElementById('jb_executions');
-      const totalCostElement = document.getElementById('jb_total_cost');
-      const tokensCostElement = document.getElementById('jb_tokens_cost');
-      const numiaFeeAmountElement = document.getElementById('jb_numia_fee_amount');
-      const recurringCostElement = document.getElementById('jb_recurring_cost');
-      const numiaFeePercentInput = document.getElementById('jb_numia_fee_percent');
-      const byoLLMCheckbox = document.getElementById('jb_byo_llm');
-      
-      // Hide the executions field when no package is selected
-      const executionsContainer = document.getElementById('jb_custom_executions_container');
-      if (executionsContainer) {
-        executionsContainer.style.display = 'none';
-      }
-      
-      // Hide the flows table when no package is selected
-      const flowsTable = document.getElementById('jb_flows_table');
-      if (flowsTable) {
-        flowsTable.style.display = 'none';
-      }
-      
-      if (tokensElement && executionsElement && totalCostElement && tokensCostElement && numiaFeeAmountElement && recurringCostElement) {
-        tokensElement.textContent = '-';
-        executionsElement.textContent = '-';
-        totalCostElement.textContent = '-';
-        tokensCostElement.textContent = '-';
-        numiaFeeAmountElement.textContent = fmt(0);
-        recurringCostElement.textContent = fmt(0);
-        
-        // Reset BYO LLM checkbox and Numia Fee input
-        if (byoLLMCheckbox) {
-          byoLLMCheckbox.checked = false;
-        }
-        if (numiaFeePercentInput) {
-          numiaFeePercentInput.value = 15; // Reset to default 15% (BYO LLM desmarcado)
-        }
-        
-        console.log('Package details cleared successfully');
-      } else {
-        console.error('Some elements not found for clearing');
-      }
-    }
-
-    // Filter function for physical branches
-    function applyFilter(filterType) {
-      const filterAll = document.getElementById('filterAll');
-      const filterNamed = document.getElementById('filterNamed');
-      const filterConcurrent = document.getElementById('filterConcurrent');
-      
-      // Reset all button styles
-      [filterAll, filterNamed, filterConcurrent].forEach(btn => {
-        btn.className = 'px-3 py-1.5 text-sm rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition-colors';
-      });
-      
-      // Set active button style
-      if (filterType === 'all') {
-        filterAll.className = 'px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors';
-      } else if (filterType === 'named') {
-        filterNamed.className = 'px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors';
-      } else if (filterType === 'concurrent') {
-        filterConcurrent.className = 'px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors';
-      }
-      
-      // Show/hide rows based on filter
-      const rows = document.querySelectorAll('.filter-named, .filter-concurrent, .filter-all');
-      rows.forEach(row => {
-        // Las categorías específicas siempre son visibles
-        const isAlwaysVisible = row.closest('section') && 
-          (row.closest('section').querySelector('h2').textContent === CATEGORIAS[6] || // Add‑ons por hora
-           row.closest('section').querySelector('h2').textContent === CATEGORIAS[9] || // Servicios profesionales
-           row.closest('section').querySelector('h2').textContent === CATEGORIAS[10] || // Hardware — Alquiler (mensual)
-           row.closest('section').querySelector('h2').textContent === CATEGORIAS[11] || // Paquetes con alquiler dehardware
-           row.closest('section').querySelector('h2').textContent === CATEGORIAS[12]);   // Paquetes de hardware
-        
-        if (isAlwaysVisible) {
-          row.style.display = 'flex';
-        } else if (filterType === 'all') {
-          row.style.display = 'flex';
-        } else if (filterType === 'named') {
-          row.style.display = row.classList.contains('filter-named') ? 'flex' : 'none';
-        } else if (filterType === 'concurrent') {
-          row.style.display = row.classList.contains('filter-concurrent') ? 'flex' : 'none';
-        }
-      });
-      
-      // Ajustar altura de las categorías expandidas después del filtrado
-      setTimeout(() => {
-        const catalogoContainer = document.getElementById('catalogo');
-        if (catalogoContainer) {
-          const expandedLists = catalogoContainer.querySelectorAll('.divide-y');
-          expandedLists.forEach(list => {
-            if (list.style.maxHeight && list.style.maxHeight !== '0px') {
-              list.style.maxHeight = list.scrollHeight + 'px';
-            }
-          });
-        }
-        
-        // Expandir automáticamente las categorías principales según el filtro
-        if (filterType === 'named' || filterType === 'concurrent') {
-          // Buscar las secciones principales (Sucursales físicas Named, Concurrent, y Paquetes)
-          const sucursalesNamedSection = catalogoContainer.querySelector('section:nth-child(2)'); // Sucursales físicas — Licencias - Named
-          const sucursalesConcurrentSection = catalogoContainer.querySelector('section:nth-child(3)'); // Sucursales físicas — Licencias - Concurrent
-          const paquetesSection = catalogoContainer.querySelector('section:nth-child(4)'); // Paquetes Sucursales físicas
-          
-          // Expandir Sucursales físicas Named
-          if (sucursalesNamedSection) {
-            const listNamed = sucursalesNamedSection.querySelector('.divide-y');
-            const expandBtnNamed = sucursalesNamedSection.querySelector('.expand-btn svg');
-            if (listNamed && expandBtnNamed) {
-              listNamed.style.maxHeight = listNamed.scrollHeight + 'px';
-              expandBtnNamed.style.transform = 'rotate(180deg)';
-            }
-          }
-          
-          // Expandir Sucursales físicas Concurrent
-          if (sucursalesConcurrentSection) {
-            const listConcurrent = sucursalesConcurrentSection.querySelector('.divide-y');
-            const expandBtnConcurrent = sucursalesConcurrentSection.querySelector('.expand-btn svg');
-            if (listConcurrent && expandBtnConcurrent) {
-              listConcurrent.style.maxHeight = listConcurrent.scrollHeight + 'px';
-              expandBtnConcurrent.style.transform = 'rotate(180deg)';
-            }
-          }
-          
-          // Expandir Paquetes Sucursales físicas
-          if (paquetesSection) {
-            const listPaquetes = paquetesSection.querySelector('.divide-y');
-            const expandBtnPaquetes = paquetesSection.querySelector('.expand-btn svg');
-            if (listPaquetes && expandBtnPaquetes) {
-              listPaquetes.style.maxHeight = listPaquetes.scrollHeight + 'px';
-              expandBtnPaquetes.style.transform = 'rotate(180deg)';
-            }
-          }
-        }
-      }, 100);
-    }
-
-    function renderCatalog() {
-      const cont = document.getElementById('catalogo');
-      cont.innerHTML = '';
-      
-      // Botón para expandir/colapsar todas las categorías
-      const globalControls = document.createElement('div');
-      globalControls.className = 'bg-white rounded-2xl shadow p-4 mb-4';
-      globalControls.innerHTML = `
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold">Catálogo de Productos</h3>
-          <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2">
-              <span class="text-sm text-slate-600">Filtrar por:</span>
-              <button id="filterAll" class="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">Todos</button>
-              <button id="filterNamed" class="px-3 py-1.5 text-sm rounded-lg bg-slate-200 text-slate-700 hover:bg-blue-700 transition-colors">Named</button>
-              <button id="filterConcurrent" class="px-3 py-1.5 text-sm rounded-lg bg-slate-200 text-slate-700 hover:bg-blue-700 transition-colors">Concurrent</button>
-            </div>
-            <div class="flex items-center gap-2">
-              <button id="expandAll" class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-                Expandir Todo
-              </button>
-              <button id="collapseAll" class="px-4 py-2 text-sm rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition-colors">
-                Colapsar Todo
-              </button>
+      <div class="lg:col-span-1">
+        <div class="sticky top-24">
+          <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h3 class="text-2xl font-bold mb-6">Total de Cotización</h3>
+            
+            <div class="space-y-4 mb-6">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">JB Chatbot:</span>
+                <span id="precioJB" class="font-semibold">$0</span>
+              </div>
+              <div class="border-t pt-4">
+                <div class="flex justify-between items-center text-2xl font-bold">
+                  <span>Total:</span>
+                  <span id="total" class="price-display">$0</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      `;
-      cont.appendChild(globalControls);
+      </div>
+    </section>
+  </main>
 
-      CATEGORIAS.forEach((cat, index) => {
-        const sec = document.createElement('section');
-        sec.className = 'bg-white rounded-2xl shadow overflow-hidden';
-        const head = document.createElement('div');
-        head.className = 'px-5 py-4 border-b border-slate-200 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors';
-        
-        // Special styling for Journey Builder category
-        const isJourneyBuilder = cat === CATEGORIAS[8];
-        const headerClass = isJourneyBuilder ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200' : '';
-        const titleClass = isJourneyBuilder ? 'text-blue-800' : '';
-        
-        head.innerHTML = `
-          <div class="flex items-center gap-3">
-            <button class="expand-btn text-slate-400 hover:text-slate-600 transition-colors">
-              <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </button>
-            <h2 class="text-base sm:text-lg font-semibold ${titleClass}">${cat}</h2>
-          </div>
-          <div class="text-sm text-slate-500">${byCat(cat).length} ítems</div>
-        `;
-        
-        if (isJourneyBuilder) {
-          head.className += ` ${headerClass}`;
-        }
-        
-        sec.appendChild(head);
+  <script>
+    // Configuración de costos unitarios para JB Chatbot
+    const costosUnitarios = {
+      valorLiveChat: 30,
+      valorToken: 0.00350,
+      llmPorConversacion: 10000,
+      margenCustom: 0.30, // 30% de margen
+      valorOCR: 0.0080 // $0.0080 por OCR
+    };
 
-        const list = document.createElement('div');
-        list.className = 'divide-y divide-slate-100 max-h-0 overflow-hidden transition-all duration-300 ease-in-out';
+    // Variables globales
+    let jbPlanSeleccionado = null; // Plan de JB seleccionado
 
-        const items = byCat(cat);
-        
-                // Special handling for Journey Builder category
-        if (cat === CATEGORIAS[8]) {
-          // Add note
-          const noteDiv = document.createElement('div');
-          noteDiv.className = 'p-4 bg-blue-50 border-b border-blue-200 text-sm text-blue-700';
-          noteDiv.innerHTML = `
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span><strong>Nota:</strong> Selecciona solo un paquete de Journey Builder. Los precios se definirán según el paquete seleccionado.</span>
-            </div>
-          `;
-          list.appendChild(noteDiv);
-          
-          // Single row with combobox for Journey Builder
-          const row = document.createElement('div');
-          row.className = 'p-4 flex flex-col sm:flex-row sm:items-center gap-3 filter-all';
-          row.innerHTML = `
-            <div class="flex-1">
-              <div class="font-medium">Journey Builder</div>
-              <div class="text-xs text-slate-500">Selecciona el paquete y modelo que mejor se adapte a tus necesidades</div>
-            </div>
-                          <div class="flex items-center gap-4">
-              <div class="flex items-center gap-2">
-                <label class="text-xs text-slate-500">Paquete</label>
-                <select id="jb_package_select" class="px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-[200px]">
-                  <option value="">Seleccionar paquete</option>
-                  <option value="jb_poc">POC</option>
-                  <option value="jb_starter">Starter</option>
-                  <option value="jb_pro_plus">Pro+</option>
-                  <option value="jb_enterprise">Enterprise</option>
-                  <option value="jb_custom_1">Custom +1</option>
-                  <option value="jb_custom_2">Custom +2</option>
-                  <option value="jb_custom_3">Custom +3</option>
-                  <option value="jb_custom_n">Custom N</option>
-                </select>
-              </div>
-              <div class="flex items-center gap-2">
-                <label class="text-xs text-slate-500">Modelo</label>
-                <select id="jb_model_select" class="px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-[250px]">
-                  <option value="">Seleccionar modelo</option>
-                  ${Object.keys(JB_MODELS).map(model => `<option value="${model}">${model}</option>`).join('')}
-                </select>
-              </div>
-              <div class="flex items-center gap-2">
-                <label class="flex items-center gap-2 text-xs text-slate-500" title="BYO LLM: El cliente proporciona su propio modelo de lenguaje (LLM)">
-                  <input type="checkbox" id="jb_byo_llm" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" title="BYO LLM: El cliente proporciona su propio modelo de lenguaje (LLM)" />
-                  BYO LLM
-                </label>
-                <div class="flex items-center gap-1">
-                  <label class="text-xs text-slate-500">Numia Fee</label>
-                  <input type="number" id="jb_numia_fee_percent" min="0" max="100" step="0.1" value="15" 
-                         class="w-16 px-2 py-1 text-sm rounded border border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                  <span class="text-xs text-blue-600">%</span>
-                </div>
-              </div>
-            </div>`;
-          list.appendChild(row);
-          
-          // Add the executions field as a separate element
-          const executionsRow = document.createElement('div');
-          executionsRow.id = 'jb_custom_executions_container';
-          executionsRow.className = 'mt-3';
-          executionsRow.style.display = 'none';
-          executionsRow.innerHTML = `
-            <div class="flex items-center gap-2">
-              <label class="text-xs text-slate-500 font-medium">Cantidad de Ejecuciones</label>
-              <input type="number" id="jb_custom_executions_main" min="1" step="1" class="w-32 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
-              <span class="text-xs text-slate-400">(Solo visible para paquetes Custom)</span>
-            </div>
-          `;
-          list.appendChild(executionsRow);
-          
-          // Simple event listener for executions input - just for basic functionality
-          setTimeout(() => {
-            const executionsInput = document.getElementById('jb_custom_executions_main');
-            if (executionsInput) {
-              // Remove any existing event listeners by cloning the element
-              const newInput = executionsInput.cloneNode(true);
-              executionsInput.parentNode.replaceChild(newInput, executionsInput);
-              
-              // Add a simple event listener that doesn't interfere with editing
-              newInput.addEventListener('input', () => {
-                console.log('Executions value changed to:', newInput.value);
-                // Update flows table when executions change
-                updateFlowsTable();
-                // Update the summary section
-                recompute();
-              });
-              
-              console.log('Simple event listener added to executions input');
-            }
-          }, 100);
-          
-          // Package details section (always visible) - now inside the category
-          const detailsRow = document.createElement('div');
-          detailsRow.id = 'jb_package_details';
-          detailsRow.className = 'p-4 bg-blue-50 border-t border-blue-200';
-          detailsRow.innerHTML = `
-            <div class="w-full">
-              <div class="text-sm font-medium text-blue-800 mb-3">Detalles del Paquete Seleccionado</div>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                <div class="bg-white p-3 rounded-lg border border-blue-200 shadow-sm">
-                  <div class="text-xs text-blue-600 font-medium mb-1">LLMs Tokens</div>
-                  <div class="text-lg font-semibold text-blue-800" id="jb_tokens">-</div>
-                  <div class="text-xs text-blue-500">Total disponible</div>
-                </div>
-                <div class="bg-white p-3 rounded-lg border border-blue-200 shadow-sm">
-                  <div class="text-xs text-blue-600 font-medium mb-1">Ejecuciones</div>
-                  <div class="text-lg font-semibold text-blue-800" id="jb_executions">-</div>
-                  <div class="text-xs text-blue-500">Total disponible</div>
-                </div>
-                <div class="bg-white p-3 rounded-lg border border-blue-200 shadow-sm">
-                  <div class="text-xs text-blue-600 font-medium mb-1">Costo Total</div>
-                  <div class="text-lg font-semibold text-blue-800" id="jb_total_cost">-</div>
-                  <div class="text-xs text-blue-500">Costo por ejecución × Ejecuciones</div>
-                </div>
-                <div class="bg-white p-3 rounded-lg border border-blue-200 shadow-sm">
-                  <div class="text-xs text-blue-600 font-medium mb-1">Costo por Tokens</div>
-                  <div class="text-lg font-semibold text-blue-800" id="jb_tokens_cost">-</div>
-                  <div class="text-xs text-blue-500">Tokens × Precio del modelo</div>
-                </div>
-                <div class="bg-white p-3 rounded-lg border border-blue-200 shadow-sm">
-                  <div class="text-xs text-blue-600 font-medium mb-1">Fee por utilización de tokens</div>
-                  <div class="text-lg font-semibold text-blue-800" id="jb_numia_fee_amount">$0.000</div>
-                  <div class="text-xs text-blue-500">% del Numia Fee sobre tokens</div>
-                </div>
-                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-300 shadow-lg">
-                  <div class="text-sm text-green-700 font-bold mb-2">💰 Costo Recurrente JB</div>
-                  <div class="text-2xl font-bold text-green-800" id="jb_recurring_cost">$0.000</div>
-                  <div class="text-xs text-green-600 font-medium">Costo Total + Tokens + Fee</div>
-                </div>
-              </div>
-            </div>
-          `;
-          list.appendChild(detailsRow);
-        } else if (cat === CATEGORIAS[9]) {
-          // Special handling for Servicios profesionales category
-          
-          // Separate JB Implementation items from other professional services
-          const jbImplItems = items.filter(it => it.id.startsWith('jb_impl_'));
-          const otherItems = items.filter(it => !it.id.startsWith('jb_impl_'));
-          
-          // Add JB Implementation section
-          if (jbImplItems.length > 0) {
-            const jbImplSection = document.createElement('div');
-            jbImplSection.className = 'p-4 bg-green-50 border-b border-green-200';
-            jbImplSection.innerHTML = `
-              <div class="text-sm font-medium text-green-800 mb-3">Implementación JB</div>
-              <div class="text-xs text-green-600 mb-3">Selecciona el paquete de implementación que mejor se adapte a tus necesidades</div>
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <label class="text-xs text-green-600">Paquete de Implementación</label>
-                  <select id="jb_impl_select" class="px-3 py-2 rounded-lg border border-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm min-w-[200px]">
-                    <option value="">Seleccionar paquete</option>
-                    <option value="jb_impl_setup">Setup Pack (8 horas)</option>
-                    <option value="jb_impl_basic">Basic (16 horas)</option>
-                    <option value="jb_impl_extended">Extended (24 horas)</option>
-                    <option value="jb_impl_full">Full (40 horas)</option>
-                    <option value="jb_impl_custom">Custom (80 horas)</option>
-                  </select>
-                </div>
-                <div class="flex items-center gap-2">
-                  <label class="text-xs text-green-600">Horas Totales</label>
-                  <div id="jb_impl_hours" class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-sm font-medium text-green-800 min-w-[100px] text-center">
-                    -
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <label class="text-xs text-green-600">Costo Total</label>
-                  <div id="jb_impl_cost" class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-sm font-bold text-green-800 min-w-[120px] text-center">
-                    $0.00
-                  </div>
-                </div>
-              </div>
-            `;
-            list.appendChild(jbImplSection);
-          }
-          
-          // Add other professional services
-          otherItems.forEach(it => {
-            const row = document.createElement('div');
-            row.className = 'p-4 flex flex-col sm:flex-row sm:items-center gap-3 filter-all';
-            
-            const inputClass = 'w-24 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500';
-            
-            row.innerHTML = `
-              <div class="flex-1">
-                <div class="font-medium">${it.name}</div>
-                <div class="text-xs text-slate-500">${it.charge === 'monthly' ? 'Mensual' : (it.charge === 'onetime' ? 'Único' : (it.charge === 'hourly-monthly' ? 'Por hora (mensual)' : 'Por hora (único)'))} · ${fmt(it.price)} / ${it.unit}${it.notes ? ' · ' + it.notes : ''}${it.flags.includes('subject') ? ' · Sujeto a aprobación' : ''}</div>
-              </div>
-              <div class="flex items-center gap-2">
-                <label class="text-xs text-slate-500">Cantidad</label>
-                <input type="number" value="0" data-id="${it.id}" class="${inputClass}" />
-              </div>`;
-            list.appendChild(row);
-          });
-        } else {
-          // Regular items for other categories
-                items.forEach(it => {
-          const row = document.createElement('div');
-          row.className = 'p-4 flex flex-col sm:flex-row sm:items-center gap-3';
-          
-          // Add data attributes for filtering
-          // Las categorías específicas siempre son visibles (CORREGIDO)
-          const isAlwaysVisible = cat === CATEGORIAS[6] || // Add‑ons por hora
-                                  cat === CATEGORIAS[8] || // Journey Builder
-                                  cat === CATEGORIAS[9] || // Servicios profesionales
-                                  cat === CATEGORIAS[10] || // Hardware — Alquiler (mensual)
-                                    cat === CATEGORIAS[11];   // Paquetes con hardware
-          
-          let filterClass = 'filter-all';
-          if (!isAlwaysVisible) {
-            const isNamed = it.name.toLowerCase().includes('named');
-            const isConcurrent = it.name.toLowerCase().includes('concurrent');
-            filterClass = isNamed ? 'filter-named' : (isConcurrent ? 'filter-concurrent' : 'filter-all');
-          }
-          
-          const inputClass = 'w-24 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500';
-          
-          row.className += ` ${filterClass}`;
-          row.innerHTML = `
-            <div class="flex-1">
-              <div class="font-medium">${it.name}</div>
-              <div class="text-xs text-slate-500">${it.charge === 'monthly' ? 'Mensual' : (it.charge === 'onetime' ? 'Único' : (it.charge === 'hourly-monthly' ? 'Por hora (mensual)' : 'Por hora (único)'))} · ${fmt(it.price)} / ${it.unit}${it.notes ? ' · ' + it.notes : ''}${it.flags.includes('subject') ? ' · Sujeto a aprobación' : ''}</div>
-            </div>
-            <div class="flex items-center gap-2">
-              <label class="text-xs text-slate-500">Cantidad</label>
-              <input type="number" value="0" data-id="${it.id}" class="${inputClass}" />
-            </div>`;
-          list.appendChild(row);
-        });
-        }
+    // Inicializar la aplicación
+    function init() {
+      setupEventListeners();
+    }
 
-        sec.appendChild(list);
-        
-        // Add flows table for Journey Builder category
-        if (cat === CATEGORIAS[8]) {
-          const flowsRow = document.createElement('div');
-          flowsRow.id = 'jb_flows_table';
-          flowsRow.className = 'p-4 bg-slate-50 border-t border-slate-200';
-         // flowsRow.style.display = 'none'; // Hide by default
-          console.log('Creating flows table for Journey Builder category');
-          flowsRow.innerHTML = `
-            <div class="w-full">
-              <div class="text-sm font-medium text-slate-800 mb-3">Average scope of executions per flow</div>
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                  <thead>
-                    <tr class="bg-slate-100">
-                      <th class="px-3 py-2 text-left font-medium text-slate-700">Flujo</th>
-                      <th class="px-3 py-2 text-center font-medium text-slate-700">Ejecuciones</th>
-                      <th class="px-3 py-2 text-center font-medium text-slate-700">Conversaciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="border-b border-slate-200">
-                      <td class="px-3 py-2 font-medium text-slate-800">Knowledge</td>
-                      <td class="px-3 py-2 text-center text-slate-600">18</td>
-                      <td class="px-3 py-2 text-center font-semibold text-blue-600" id="jb_flows_knowledge">-</td>
-                    </tr>
-                    <tr class="border-b border-slate-200">
-                      <td class="px-3 py-2 font-medium text-slate-800">Appointment</td>
-                      <td class="px-3 py-2 text-center text-slate-600">7</td>
-                      <td class="px-3 py-2 text-center font-semibold text-blue-600" id="jb_flows_appointment">-</td>
-                    </tr>
-                    <tr class="border-b border-slate-200">
-                      <td class="px-3 py-2 font-medium text-slate-800">Virtual Shift</td>
-                      <td class="px-3 py-2 text-center text-slate-600">7</td>
-                      <td class="px-3 py-2 text-center font-semibold text-blue-600" id="jb_flows_virtual">-</td>
-                    </tr>
-                    <tr class="bg-slate-50">
-                      <td class="px-3 py-2 font-medium text-slate-800">Knowledge + (App/Virtual)</td>
-                      <td class="px-3 py-2 text-center text-slate-600">25</td>
-                      <td class="px-3 py-2 text-center font-semibold text-blue-600" id="jb_flows_combined">-</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="text-xs text-slate-500 mt-2">
-                Las conversaciones se calculan dividiendo las ejecuciones del paquete seleccionado entre las ejecuciones del flujo.
-              </div>
-            </div>
-          `;
-          sec.appendChild(flowsRow);
-          console.log('Flows table added to section:', flowsRow);
-        }
-        
-        cont.appendChild(sec);
-        
-        // Add expand/collapse functionality
-        const expandBtn = head.querySelector('.expand-btn');
-        const listContainer = list;
-        const arrow = expandBtn.querySelector('svg');
-        
-        // Expandir la primera categoría por defecto
-        if (index === 0) {
-          listContainer.style.maxHeight = listContainer.scrollHeight + 'px';
-          arrow.style.transform = 'rotate(180deg)';
-        }
-        
-        expandBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          
-          const isExpanded = listContainer.style.maxHeight !== '0px';
-          
-          if (isExpanded) {
-            // Colapsar
-            listContainer.style.maxHeight = '0px';
-            arrow.style.transform = 'rotate(0deg)';
-          } else {
-            // Expandir
-            listContainer.style.maxHeight = listContainer.scrollHeight + 'px';
-            arrow.style.transform = 'rotate(180deg)';
-          }
-        });
-        
-        // También permitir hacer clic en el header completo
-        head.addEventListener('click', (e) => {
-          if (!e.target.closest('.expand-btn') && !e.target.closest('button[id^="filter"]')) {
-            expandBtn.click();
-          }
-        });
-      });
-
-      // Add global expand/collapse functionality
-      const expandAllBtn = document.getElementById('expandAll');
-      const collapseAllBtn = document.getElementById('collapseAll');
+    // Configurar event listeners
+    function setupEventListeners() {
+      document.getElementById('btnGenerarPDF').addEventListener('click', generarPDF);
       
-      expandAllBtn.addEventListener('click', () => {
-        const allLists = cont.querySelectorAll('.divide-y');
-        const allArrows = cont.querySelectorAll('.expand-btn svg');
-        
-        allLists.forEach((list, index) => {
-          list.style.maxHeight = list.scrollHeight + 'px';
-          if (allArrows[index]) {
-            allArrows[index].style.transform = 'rotate(180deg)';
-          }
+      // Event listeners para planes de JB
+      document.querySelectorAll('.jb-plan').forEach(plan => {
+        plan.addEventListener('click', function() {
+          const planType = this.dataset.plan;
+          seleccionarJBPlan(planType);
         });
       });
+    }
+
+    // Calcular precio del plan Enterprise de JB
+    function calcularPrecioEnterpriseJB() {
+      const ocrElement = document.getElementById('enterpriseOCR');
       
-      collapseAllBtn.addEventListener('click', () => {
-        const allLists = cont.querySelectorAll('.divide-y');
-        const allArrows = cont.querySelectorAll('.expand-btn svg');
-        
-        allLists.forEach((list, index) => {
-          list.style.maxHeight = '0px';
-          if (allArrows[index]) {
-            allArrows[index].style.transform = 'rotate(0deg)';
-          }
-        });
-      });
-
-      // Generar campos de descuento por categoría
-      renderDescuentosCategorias();
-
-      // Add filter functionality for physical branches
-      const filterAll = document.getElementById('filterAll');
-      const filterNamed = document.getElementById('filterNamed');
-      const filterConcurrent = document.getElementById('filterConcurrent');
+      if (!ocrElement) {
+        return 1600; // Valor por defecto si el elemento no está disponible
+      }
       
-      if (filterAll && filterNamed && filterConcurrent) {
-        filterAll.addEventListener('click', () => applyFilter('all'));
-        filterNamed.addEventListener('click', () => applyFilter('named'));
-        filterConcurrent.addEventListener('click', () => applyFilter('concurrent'));
-        
-        // Set initial active state
-        applyFilter('all');
+      const ocr = parseInt(ocrElement.value) || 0;
+      
+      // Plan base Enterprise (sin OCR)
+      const planBase = 1600;
+      
+      // Calcular costo de OCR
+      const costoOCR = ocr * costosUnitarios.valorOCR;
+      
+      // Sumar OCR al plan base
+      const total = planBase + costoOCR;
+      
+      return Math.round(total);
+    }
+
+    // Calcular precio del plan Custom de JB
+    function calcularPrecioCustomJB() {
+      const conversacionesElement = document.getElementById('customConversaciones');
+      const liveAgentsElement = document.getElementById('customLiveAgents');
+      const ocrElement = document.getElementById('customOCR');
+      
+      if (!conversacionesElement || !liveAgentsElement || !ocrElement) {
+        return 3000; // Valor por defecto si los elementos no están disponibles
       }
+      
+      const conversaciones = parseInt(conversacionesElement.value) || 30000;
+      const liveAgents = parseInt(liveAgentsElement.value) || 10;
+      const ocr = parseInt(ocrElement.value) || 0;
+      
+      // Calcular costo de Live Agents
+      const costoLiveAgents = liveAgents * costosUnitarios.valorLiveChat;
+      
+      // Calcular costo de LLM (conversaciones × LLM por conversación × valor del token)
+      const cantidadLLM = conversaciones * costosUnitarios.llmPorConversacion/1000;
+      const costoLLM = cantidadLLM * costosUnitarios.valorToken;
+      
+      // Calcular costo de OCR
+      const costoOCR = ocr * costosUnitarios.valorOCR;
+      
+      // Sumar costos y aplicar margen del 30%
+      const costoBase = costoLiveAgents + costoLLM + costoOCR;
+      const precioConMargen = costoBase * (1 + costosUnitarios.margenCustom);
+      
+      // Asegurar precio mínimo de $3,000
+      const precioMinimo = 3000;
+      const precioFinal = Math.max(precioConMargen, precioMinimo);
+      
+      return Math.round(precioFinal);
+    }
 
-      // Bind inputs
-      cont.querySelectorAll('input[type=number]').forEach(inp => {
-        inp.addEventListener('input', () => {
-          const id = inp.getAttribute('data-id');
-          const val = Number(inp.value || 0);
-          
-          // Validación especial para pkg_ilimitado
-          if (id === 'pkg_ilimitado') {
-            if (val > 0 && val < 200) {
-              // Mostrar mensaje de error para valores entre 1-199
-              let errorMsg = inp.parentNode.querySelector('.error-msg');
-              if (!errorMsg) {
-                errorMsg = document.createElement('div');
-                errorMsg.className = 'error-msg text-xs text-red-600 font-medium mt-1';
-                inp.parentNode.appendChild(errorMsg);
-              }
-              errorMsg.textContent = '❌ Error: Solo se permiten 0 o valores mayores o iguales a 200';
-              errorMsg.style.display = 'block';
-              
-              // Agregar estilo de error al input
-              inp.classList.add('border-red-500', 'bg-red-50');
-            } else {
-              // Ocultar mensaje de error para valores válidos (0 o >= 200)
-              const errorMsg = inp.parentNode.querySelector('.error-msg');
-              if (errorMsg) {
-                errorMsg.style.display = 'none';
-              }
-              
-              // Remover estilo de error del input
-              inp.classList.remove('border-red-500', 'bg-red-50');
-            }
-          }
-
-          if (val > 0) state.qty.set(id, val); else state.qty.delete(id);
-          recompute();
+    // Configurar event listeners para configuración Enterprise
+    function configurarEventListenersEnterprise() {
+      const enterpriseOCR = document.getElementById('enterpriseOCR');
+      
+      if (enterpriseOCR) {
+        // Agregar event listener para OCR
+        enterpriseOCR.addEventListener('input', function() {
+          actualizarPrecioEnterprise();
+          actualizarResumen();
+          calcularTotal();
         });
-      });
-
-      // Bind combobox for Journey Builder packages
-      const jbSelect = document.getElementById('jb_package_select');
-      console.log('Looking for jb_package_select:', jbSelect);
-      if (jbSelect) {
-        console.log('jb_package_select found, adding event listener');
-        jbSelect.addEventListener('change', () => {
-          const selectedValue = jbSelect.value;
-          console.log('Combobox changed to:', selectedValue);
-          
-          // Show/hide the executions field based on whether the package starts with "custom"
-          const executionsContainer = document.getElementById('jb_custom_executions_container');
-          if (executionsContainer) {
-            if (selectedValue && selectedValue.startsWith('jb_custom_')) {
-              executionsContainer.style.display = 'block';
-              console.log('Showing executions field for custom package');
-            } else {
-              executionsContainer.style.display = 'none';
-              console.log('Hiding executions field for non-custom package');
-            }
-          }
-          
-          // Clear any previous Journey Builder selections
-          state.qty.forEach((value, key) => {
-            if (key.startsWith('jb_')) {
-              state.qty.delete(key);
-            }
-          });
-          
-          // Set the selected package if one is selected
-          if (selectedValue) {
-            // Don't add to state.qty - the cost is handled separately via "Costo Recurrente JB"
-            console.log('Calling showJBPackageDetails with:', selectedValue);
-            // Show package details
-            showJBPackageDetails(selectedValue);
-          } else {
-            console.log('Hiding package details');
-            // Hide package details
-            hideJBPackageDetails();
-          }
-          
-          recompute();
-        });
-      } else {
-        console.error('jb_package_select not found!');
-      }
-
-      // Bind model selector for Journey Builder
-      const jbModelSelect = document.getElementById('jb_model_select');
-      console.log('Looking for jb_model_select:', jbModelSelect);
-      if (jbModelSelect) {
-        console.log('jb_model_select found, adding event listener');
-        jbModelSelect.addEventListener('change', () => {
-          const selectedModel = jbModelSelect.value;
-          console.log('Model selected:', selectedModel);
-          
-          // Update package details if a package is already selected
-          const selectedPackage = document.getElementById('jb_package_select').value;
-          if (selectedPackage) {
-            console.log('Updating package details with new model selection');
-            showJBPackageDetails(selectedPackage);
-            
-            // Also update flows table when model changes
-            updateFlowsTable();
-            
-            // Update the summary section
-            recompute();
-          }
-        });
-      } else {
-        console.error('jb_model_select not found!');
-      }
-
-      // Bind Numia Fee percentage input
-      const numiaFeeInput = document.getElementById('jb_numia_fee_percent');
-      console.log('Looking for jb_numia_fee_percent:', numiaFeeInput);
-      if (numiaFeeInput) {
-        console.log('jb_numia_fee_percent found, adding event listener');
-        numiaFeeInput.addEventListener('input', () => {
-          const selectedPackage = document.getElementById('jb_package_select').value;
-          const selectedModel = document.getElementById('jb_model_select').value;
-          const byoLLM = document.getElementById('jb_byo_llm').checked;
-          
-          if (selectedPackage && selectedModel && JB_MODELS[selectedModel]) {
-            // Recalculate tokens cost and Numia Fee
-            const package = JB_PACKAGES[selectedPackage];
-            const modelPrice = JB_MODELS[selectedModel];
-            const originalTokensCost = (package.tokens / 1000) * modelPrice;
-            const displayedTokensCost = byoLLM ? 0 : originalTokensCost;
-            
-            updateNumiaFee(displayedTokensCost, byoLLM);
-            console.log('Numia Fee updated due to percentage change');
-            
-            // Update the summary section
-            recompute();
-          }
-        });
-      } else {
-        console.error('jb_numia_fee_percent not found!');
-      }
-
-      // Bind BYO LLM checkbox
-      const byoLLMCheckbox = document.getElementById('jb_byo_llm');
-      console.log('Looking for jb_byo_llm:', byoLLMCheckbox);
-      if (byoLLMCheckbox) {
-        console.log('jb_byo_llm found, adding event listener');
-        byoLLMCheckbox.addEventListener('change', () => {
-          const selectedPackage = document.getElementById('jb_package_select').value;
-          const byoLLM = byoLLMCheckbox.checked;
-          
-          console.log('BYO LLM checkbox changed to:', byoLLM);
-          
-          if (selectedPackage) {
-            // Update package details with new BYO LLM state
-            showJBPackageDetails(selectedPackage);
-            console.log('Package details updated due to BYO LLM change');
-            
-            // Update the summary section
-            recompute();
-          }
-        });
-      } else {
-        console.error('jb_byo_llm not found!');
-      }
-
-      // JB Implementation selector event listener
-      const jbImplSelect = document.getElementById('jb_impl_select');
-      if (jbImplSelect) {
-        console.log('jb_impl_select found, adding event listener');
-        jbImplSelect.addEventListener('change', () => {
-          const selectedValue = jbImplSelect.value;
-          console.log('JB Implementation selector changed to:', selectedValue);
-          
-          // Clear any previous JB Implementation selections
-          state.qty.forEach((value, key) => {
-            if (key.startsWith('jb_impl_')) {
-              state.qty.delete(key);
-            }
-          });
-          
-          // Update hours display and cost
-          const hoursElement = document.getElementById('jb_impl_hours');
-          const costElement = document.getElementById('jb_impl_cost');
-          if (hoursElement && costElement) {
-            if (selectedValue) {
-              // Map the selected value to the correct pack name
-              const packNameMap = {
-                'jb_impl_setup': 'Setup Pack',
-                'jb_impl_basic': 'Basic',
-                'jb_impl_extended': 'Extended',
-                'jb_impl_full': 'Full',
-                'jb_impl_custom': 'Custom'
-              };
-              
-              const packName = packNameMap[selectedValue];
-              if (packName && JB_IMPLEMENTATION_PACKS[packName]) {
-                const hours = JB_IMPLEMENTATION_PACKS[packName];
-                const hourlyRate = 50; // $50 por hora
-                const totalCost = hours * hourlyRate;
-                
-                hoursElement.textContent = `${hours} horas`;
-                costElement.textContent = `$${totalCost.toLocaleString()}.00`;
-                
-                // Add to state
-                state.qty.set(selectedValue, 1);
-                console.log('Added JB Implementation to state:', selectedValue, 'with quantity 1');
-                console.log(`Implementation cost: ${hours} hours × $${hourlyRate} = $${totalCost}`);
-              } else {
-                hoursElement.textContent = '-';
-                costElement.textContent = '$0.00';
-              }
-            } else {
-              hoursElement.textContent = '-';
-              costElement.textContent = '$0.00';
-            }
-          }
-          
-          recompute();
-        });
-      } else {
-        console.error('jb_impl_select not found!');
       }
     }
 
-    function renderDescuentosCategorias() {
-      const cont = document.getElementById('descuentosCategorias');
-      cont.innerHTML = '';
-
-      CATEGORIAS.forEach(cat => {
-        const div = document.createElement('div');
-        div.className = 'flex items-center justify-between text-xs';
+    // Configurar event listeners para configuración custom
+    function configurarEventListenersCustom() {
+      const customConversaciones = document.getElementById('customConversaciones');
+      const customLiveAgents = document.getElementById('customLiveAgents');
+      const customOCR = document.getElementById('customOCR');
+      
+      if (customConversaciones && customLiveAgents && customOCR) {
+        // Agregar event listeners
+        customConversaciones.addEventListener('input', function() {
+          actualizarPrecioCustom();
+          actualizarResumen();
+          calcularTotal();
+        });
         
-        div.innerHTML = `
-          <span class="text-slate-600">${cat.split('—')[0].trim()}</span>
-          <div class="flex items-center gap-1">
-            <select class="px-1 py-0.5 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs" data-categoria="${cat}">
-              <option value="porcentaje">%</option>
-              <option value="monto">$</option>
-            </select>
-            <input type="number" min="0" step="0.01" value="0" placeholder="0" 
-                   class="w-16 px-1 py-0.5 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs" 
-                   data-categoria="${cat}" />
+        customLiveAgents.addEventListener('input', function() {
+          actualizarPrecioCustom();
+          actualizarResumen();
+          calcularTotal();
+        });
+        
+        customOCR.addEventListener('input', function() {
+          actualizarPrecioCustom();
+          actualizarResumen();
+          calcularTotal();
+        });
+      }
+    }
+
+    // Seleccionar plan de JB
+    function seleccionarJBPlan(planType) {
+      jbPlanSeleccionado = planType;
+      
+      // Actualizar UI
+      document.querySelectorAll('.jb-plan').forEach(plan => {
+        plan.classList.remove('border-purple-500', 'bg-purple-50');
+        plan.classList.add('border-transparent');
+      });
+      
+      const planSeleccionado = document.querySelector(`[data-plan="${planType}"]`);
+      planSeleccionado.classList.remove('border-transparent');
+      planSeleccionado.classList.add('border-purple-500', 'bg-purple-50');
+      
+      // Mostrar configuración custom si es necesario
+      const customConfig = document.getElementById('customConfig');
+      const enterpriseConfig = document.getElementById('enterpriseConfig');
+      
+      if (planType === 'custom') {
+        customConfig.style.display = 'block';
+        enterpriseConfig.style.display = 'none';
+        configurarEventListenersCustom(); // Configurar event listeners cuando se muestre
+        actualizarPrecioCustom();
+      } else if (planType === 'enterprise') {
+        customConfig.style.display = 'none';
+        enterpriseConfig.style.display = 'block';
+        configurarEventListenersEnterprise(); // Configurar event listeners cuando se muestre
+        actualizarPrecioEnterprise();
+      } else {
+        customConfig.style.display = 'none';
+        enterpriseConfig.style.display = 'none';
+      }
+      
+      actualizarResumen();
+      calcularTotal();
+    }
+
+    // Actualizar desglose del cálculo Enterprise
+    function actualizarDesgloseEnterprise() {
+      const ocrElement = document.getElementById('enterpriseOCR');
+      
+      if (!ocrElement) {
+        return; // El elemento no está disponible aún
+      }
+      
+      const ocr = parseInt(ocrElement.value) || 0;
+      
+      // Calcular costos
+      const planBase = 1600; // Debe coincidir con calcularPrecioEnterpriseJB()
+      const costoOCR = ocr * costosUnitarios.valorOCR;
+      const total = planBase + costoOCR;
+      
+      // Actualizar elementos del desglose
+      const desgloseOCR = document.getElementById('desgloseEnterpriseOCR');
+      const desgloseTotal = document.getElementById('desgloseEnterpriseTotal');
+      
+      if (desgloseOCR) desgloseOCR.textContent = 
+        `${ocr.toLocaleString()} × $${costosUnitarios.valorOCR} = $${costoOCR.toLocaleString()}`;
+      
+      if (desgloseTotal) desgloseTotal.textContent = `$${total.toLocaleString()}`;
+    }
+
+    // Actualizar precio del plan Enterprise en la UI
+    function actualizarPrecioEnterprise() {
+      const precioEnterprise = calcularPrecioEnterpriseJB();
+      const enterprisePlanElement = document.querySelector('[data-plan="enterprise"]');
+      const precioElement = enterprisePlanElement.querySelector('.text-2xl');
+      precioElement.textContent = `$${precioEnterprise.toLocaleString()}`;
+      
+      // Actualizar también el desglose
+      actualizarDesgloseEnterprise();
+    }
+
+    // Actualizar desglose del cálculo Custom
+    function actualizarDesgloseCustom() {
+      const conversacionesElement = document.getElementById('customConversaciones');
+      const liveAgentsElement = document.getElementById('customLiveAgents');
+      const ocrElement = document.getElementById('customOCR');
+      
+      if (!conversacionesElement || !liveAgentsElement || !ocrElement) {
+        return; // Los elementos no están disponibles aún
+      }
+      
+      const conversaciones = parseInt(conversacionesElement.value) || 10000;
+      const liveAgents = parseInt(liveAgentsElement.value) || 10;
+      const ocr = parseInt(ocrElement.value) || 0;
+      
+      // Calcular costos
+      const costoLiveAgents = liveAgents * costosUnitarios.valorLiveChat;
+      const cantidadLLM = conversaciones * costosUnitarios.llmPorConversacion/1000;
+      const costoLLM = cantidadLLM * costosUnitarios.valorToken;
+      const costoOCR = ocr * costosUnitarios.valorOCR;
+      const costoBase = costoLiveAgents + costoLLM + costoOCR;
+      const margen = costoBase * costosUnitarios.margenCustom;
+      const precioConMargen = costoBase + margen;
+      
+      // Asegurar precio mínimo de $3,000
+      const precioMinimo = 3000;
+      const total = Math.max(precioConMargen, precioMinimo);
+      
+      // Actualizar elementos del desglose
+      const desgloseLiveAgents = document.getElementById('desgloseLiveAgents');
+      const desgloseLLM = document.getElementById('desgloseLLM');
+      const desgloseOCR = document.getElementById('desgloseOCR');
+      const desgloseCostoBase = document.getElementById('desgloseCostoBase');
+      const desgloseMargen = document.getElementById('desgloseMargen');
+      const desgloseTotal = document.getElementById('desgloseTotal');
+      
+      if (desgloseLiveAgents) desgloseLiveAgents.textContent = 
+        `${liveAgents} × $${costosUnitarios.valorLiveChat} = $${costoLiveAgents.toLocaleString()}`;
+      
+      if (desgloseLLM) desgloseLLM.textContent = 
+        `${cantidadLLM.toLocaleString()} × $${costosUnitarios.valorToken} /1000= $${costoLLM.toLocaleString()}`;
+      
+      if (desgloseOCR) desgloseOCR.textContent = 
+        `${ocr.toLocaleString()} × $${costosUnitarios.valorOCR} = $${costoOCR.toLocaleString()}`;
+      
+      if (desgloseTotal) desgloseTotal.textContent = `$${Math.round(total).toLocaleString()}`;
+    }
+
+    // Actualizar precio del plan Custom en la UI
+    function actualizarPrecioCustom() {
+      const precioCustom = calcularPrecioCustomJB();
+      const customPlanElement = document.querySelector('[data-plan="custom"]');
+      const precioElement = customPlanElement.querySelector('.text-2xl');
+      precioElement.textContent = `$${precioCustom.toLocaleString()}`;
+      
+      // Actualizar también el desglose
+      actualizarDesgloseCustom();
+    }
+
+    // Actualizar resumen
+    function actualizarResumen() {
+      const container = document.getElementById('resumenConfiguracion');
+      
+      let html = '<div class="space-y-4">';
+      
+      // Mostrar información de JB Chatbot si está seleccionado
+      if (jbPlanSeleccionado) {
+        let precioJB = 0;
+        let nombrePlanJB = '';
+        
+        if (jbPlanSeleccionado === 'custom') {
+          precioJB = calcularPrecioCustomJB();
+          nombrePlanJB = 'Custom';
+        } else if (jbPlanSeleccionado === 'enterprise') {
+          precioJB = calcularPrecioEnterpriseJB();
+          nombrePlanJB = 'Enterprise';
+        } else {
+          const preciosJB = {
+            'starter': 400,
+            'professional': 800
+          };
+          precioJB = preciosJB[jbPlanSeleccionado] || 0;
+          nombrePlanJB = jbPlanSeleccionado.charAt(0).toUpperCase() + jbPlanSeleccionado.slice(1);
+        }
+        
+        html += `
+          <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="text-3xl">🤖</div>
+                <div>
+                  <h4 class="text-xl font-bold">JB Chatbot - ${nombrePlanJB}</h4>
+                  <p class="opacity-90 text-sm">Solución de chatbot inteligente</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm opacity-80">Precio:</div>
+                <div class="text-2xl font-bold">$${precioJB.toLocaleString()}</div>
+              </div>
+            </div>
           </div>
         `;
-        
-        cont.appendChild(div);
-
-        // Bind events
-        const select = div.querySelector('select');
-        const input = div.querySelector('input');
-        
-        select.addEventListener('change', () => {
-          const categoria = select.getAttribute('data-categoria');
-          const tipo = select.value;
-          const valor = Number(input.value) || 0;
-          
-          if (valor > 0) {
-            state.descuentosCategorias.set(categoria, { tipo, valor });
-          } else {
-            state.descuentosCategorias.delete(categoria);
-          }
-          recompute();
-        });
-        
-        input.addEventListener('input', () => {
-          const categoria = input.getAttribute('data-categoria');
-          const tipo = select.value;
-          const valor = Number(input.value) || 0;
-          
-          if (valor > 0) {
-            state.descuentosCategorias.set(categoria, { tipo, valor });
-          } else {
-            state.descuentosCategorias.delete(categoria);
-          }
-          recompute();
-        });
-      });
-
-      // Actualizar el texto del botón si hay descuentos activos
-      updateToggleButtonText();
-    }
-
-    function updateToggleButtonText() {
-      const btn = document.getElementById('toggleDescuentosCategorias');
-      const hasActiveDiscounts = state.descuentosCategorias.size > 0;
-      
-      if (hasActiveDiscounts) {
-        btn.textContent = btn.textContent === 'Mostrar' ? 'Mostrar' : 'Ocultar';
-        btn.classList.add('text-orange-600', 'font-medium');
-        btn.classList.remove('text-blue-600');
       } else {
-        btn.textContent = 'Mostrar';
-        btn.classList.remove('text-orange-600', 'font-medium');
-        btn.classList.add('text-blue-600');
+        container.innerHTML = '<p class="text-slate-600">Selecciona un plan JB para ver el resumen</p>';
+        return;
       }
+
+      html += '</div>';
+      container.innerHTML = html;
     }
 
-    function recompute() {
-      const resumenDiv = document.getElementById('resumenItems');
-      const applySandbox = document.getElementById('chkSandbox').checked;
-      state.applySandbox = applySandbox;
-
-      let monthly = 0, onetime = 0, licenseBase = 0;
-      let monthlyBeforeSSO = 0;
-
-      const rows = [];
-
-      // Build rows for selected items
-      for (const [id, qty] of state.qty.entries()) {
-        const it = CATALOGO.find(x => x.id === id);
-        if (!it) continue;
-        const isHourly = it.charge.startsWith('hourly');
-        const isMonthly = it.charge === 'monthly' || it.charge === 'hourly-monthly';
-        const isOnetime = it.charge === 'onetime' || it.charge === 'hourly-onetime';
-
-        const unitPrice = it.price;
-        const subtotal = unitPrice * qty;
-
-        if (isMonthly) monthly += subtotal;
-        if (isOnetime) onetime += subtotal;
-        if (isMonthly && it.license) licenseBase += subtotal; // base para Sandbox 15%
-
-        // Para el cálculo de SSO gratis necesitamos el mensual antes de SSO
-        if (isMonthly && it.id !== 'addon_sso') monthlyBeforeSSO += subtotal;
-
-        rows.push({
-          id: it.id,
-          name: it.name,
-          tipo: isMonthly ? 'Mensual' : 'Único',
-          qty,
-          unit: isHourly ? 'horas' : 'unid.',
-          price: unitPrice,
-          subtotal,
-        });
-      }
-
-      // SSO gratis si mensual >= 500 MRR
-      const ssoSel = state.qty.get('addon_sso') || 0;
-      let ssoAdj = 0;
-      if (ssoSel > 0 && monthlyBeforeSSO >= 500) {
-        const sso = CATALOGO.find(x => x.id === 'addon_sso');
-        const ssoSub = sso.price * ssoSel;
-        monthly -= ssoSub; // quita costo de SSO
-        ssoAdj = -ssoSub;
-      }
-
-      // Sandbox 15%
-      let sandboxValue = 0;
-      const qtySandbox = Number(document.getElementById('qtySandbox').value) || 1;
-      if (applySandbox && licenseBase > 0) {
-        sandboxValue = +(licenseBase * 0.15 * qtySandbox).toFixed(2);
-        monthly += sandboxValue;
-      }
+    // Calcular total
+    function calcularTotal() {
+      let precioJB = 0;
       
-      // Actualizar display de cantidad de ambientes
-      document.getElementById('sandboxQtyDisplay').textContent = qtySandbox;
-
-      // Calcular descuento general
-      let descuentoValue = 0;
-      const tipoDescuento = document.getElementById('tipoDescuento').value;
-      const valorDescuento = Number(document.getElementById('valorDescuento').value) || 0;
-      
-      if (valorDescuento > 0) {
-        if (tipoDescuento === 'porcentaje') {
-          // Descuento porcentual sobre el total mensual (incluyendo sandbox)
-          descuentoValue = +((monthly + onetime) * valorDescuento / 100).toFixed(2);
+      if (jbPlanSeleccionado) {
+        if (jbPlanSeleccionado === 'custom') {
+          precioJB = calcularPrecioCustomJB();
+        } else if (jbPlanSeleccionado === 'enterprise') {
+          precioJB = calcularPrecioEnterpriseJB();
         } else {
-          // Descuento por monto fijo
-          descuentoValue = valorDescuento;
+          const preciosJB = {
+            'starter': 400,
+            'professional': 800
+          };
+          precioJB = preciosJB[jbPlanSeleccionado] || 0;
         }
       }
 
-      // Calcular descuentos por categoría
-      let descuentosCategoriasValue = 0;
-      const descuentosCategorias = [];
-      
-      for (const [categoria, desc] of state.descuentosCategorias.entries()) {
-        // Calcular subtotal de la categoría
-        let subtotalCategoria = 0;
-        for (const [id, qty] of state.qty.entries()) {
-          const it = CATALOGO.find(x => x.id === id);
-          if (it && it.category === categoria) {
-            const isMonthly = it.charge === 'monthly' || it.charge === 'hourly-monthly';
-            const isOnetime = it.charge === 'onetime' || it.charge === 'hourly-onetime';
-            
-            if (isMonthly || isOnetime) {
-              subtotalCategoria += it.price * qty;
-            }
-          }
-        }
-        
-        if (subtotalCategoria > 0) {
-          let descCategoria = 0;
-          if (desc.tipo === 'porcentaje') {
-            descCategoria = +(subtotalCategoria * desc.valor / 100).toFixed(2);
-          } else {
-            descCategoria = Math.min(desc.valor, subtotalCategoria); // No más del subtotal
-          }
-          
-          descuentosCategoriasValue += descCategoria;
-          descuentosCategorias.push({
-            categoria: categoria.split('—')[0].trim(),
-            subtotal: subtotalCategoria,
-            descuento: descCategoria,
-            tipo: desc.tipo,
-            valor: desc.valor
-          });
-        }
-      }
-
-      // Aplicar descuentos al total
-      if (descuentoValue > 0 || descuentosCategoriasValue > 0) {
-        monthly += onetime; // Combinar mensual y único
-        monthly -= descuentoValue + descuentosCategoriasValue;
-        onetime = 0; // Ya está incluido en monthly
-      }
-
-      // Calcular Costo Recurrente JB para el resumen
-      let jbRecurringCostForResumen = 0;
-      const jbValuesForResumen = getCurrentJBValues();
-      
-      console.log('=== RESUMEN DEBUG ===');
-      console.log('jbValuesForResumen:', jbValuesForResumen);
-      
-      if (jbValuesForResumen) {
-        const feePercent = jbValuesForResumen.byoLLM ? 15 : 30;
-        const numiaFeeAmount = jbValuesForResumen.tokensCost * (feePercent / 100);
-        
-        jbRecurringCostForResumen = jbValuesForResumen.totalCost + jbValuesForResumen.tokensCost + numiaFeeAmount;
-        
-        console.log('JB Recurring Cost calculation for resumen:', {
-          totalCost: jbValuesForResumen.totalCost,
-          tokensCost: jbValuesForResumen.tokensCost,
-          feePercent,
-          numiaFeeAmount,
-          jbRecurringCostForResumen
-        });
-        
-        // Agregar JB Recurring Cost al resumen si es mayor a 0
-        if (jbRecurringCostForResumen > 0) {
-          console.log('Adding JB Recurring Cost to resumen rows:', jbRecurringCostForResumen);
-          rows.push({
-            id: 'jb_recurring_cost',
-            name: 'Journey Builder',
-            tipo: 'Mensual',
-            qty: 1,
-            unit: 'unid.',
-            price: jbRecurringCostForResumen,
-            subtotal: jbRecurringCostForResumen,
-          });
-        } else {
-          console.log('JB Recurring Cost is 0, not adding to resumen');
-        }
-      } else {
-        console.log('No JB values found for resumen - make sure package and model are selected');
-      }
-
-      // Render resumen simple (primeros 6 items)
-      rows.sort((a,b) => b.subtotal - a.subtotal);
-      resumenDiv.innerHTML = rows.slice(0,6).map(r => `
-        <div class="py-2 flex items-center justify-between">
-          <div class="pr-2">
-            <div class="font-medium">${r.name}</div>
-            <div class="text-xs text-slate-500">${r.tipo} · ${r.qty} ${r.unit} × ${fmt(r.price)}</div>
-          </div>
-          <div class="text-sm font-semibold">${fmt(r.subtotal)}</div>
-        </div>`).join('') + (rows.length > 6 ? `<div class="pt-2 text-xs text-slate-500">+ ${rows.length-6} ítems más…</div>` : (rows.length === 0 ? '<div class="text-slate-500">Sin ítems seleccionados.</div>' : ''));
-
-      // Calcular Costo Recurrente JB si hay un paquete seleccionado
-      let jbRecurringCost = 0;
-      const jbValues = getCurrentJBValues();
-      
-      if (jbValues) {
-        const feePercent = jbValues.byoLLM ? 15 : 30;
-        const numiaFeeAmount = jbValues.tokensCost * (feePercent / 100);
-        
-        jbRecurringCost = jbValues.totalCost + jbValues.tokensCost + numiaFeeAmount;
-        console.log('JB Recurring Cost calculated:', jbRecurringCost);
-      }
-
-      // Totales
-      document.getElementById('subMensual').textContent = fmt(Math.max(monthly + jbRecurringCost - sandboxValue - descuentoValue - descuentosCategoriasValue, 0));
-      document.getElementById('sandboxRow').textContent = fmt(sandboxValue);
-      document.getElementById('descuentoRow').textContent = `-${fmt(descuentoValue)}`;
-      document.getElementById('descuentosCategoriasRow').textContent = `-${fmt(descuentosCategoriasValue)}`;
-      document.getElementById('subUnico').textContent = fmt(onetime);
-      document.getElementById('totalPrimerMes').textContent = fmt(monthly + onetime + jbRecurringCost);
-
-      // Actualizar estado del botón de toggle
-      updateToggleButtonText();
+      document.getElementById('precioJB').textContent = `$${precioJB.toLocaleString()}`;
+      document.getElementById('total').textContent = `$${precioJB.toLocaleString()}`;
     }
 
+    // Generar PDF
     function generarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-      const marginX = 40, marginY = 40;
-      const today = new Date();
-      const fecha = today.toLocaleDateString('es-AR');
-      const cliente = document.getElementById('cliente').value || '—';
-
-      // Recalcular para obtener todas las filas
-      let monthly = 0, onetime = 0, licenseBase = 0, monthlyBeforeSSO = 0;
-      const rows = [];
-      for (const [id, qty] of state.qty.entries()) {
-        const it = CATALOGO.find(x => x.id === id);
-        if (!it) continue;
-        const isHourly = it.charge.startsWith('hourly');
-        const isMonthly = it.charge === 'monthly' || it.charge === 'hourly-monthly';
-        const isOnetime = it.charge === 'onetime' || it.charge === 'hourly-onetime';
-        const unitPrice = it.price;
-        const subtotal = unitPrice * qty;
-        if (isMonthly) monthly += subtotal;
-        if (isOnetime) onetime += subtotal;
-        if (isMonthly && it.license) licenseBase += subtotal;
-        if (isMonthly && it.id !== 'addon_sso') monthlyBeforeSSO += subtotal;
-
-        rows.push([
-          it.category,
-          it.name,
-          isMonthly ? 'Mensual' : 'Único',
-          String(qty),
-          fmt(unitPrice),
-          fmt(subtotal)
-        ]);
+      if (!jbPlanSeleccionado) {
+        alert('Por favor selecciona un plan JB primero');
+        return;
       }
 
-      // SSO ajuste si corresponde
-      let ssoNote = '';
-      const ssoSel = state.qty.get('addon_sso') || 0;
-      if (ssoSel > 0 && monthlyBeforeSSO >= 500) {
-        const sso = CATALOGO.find(x => x.id === 'addon_sso');
-        const ssoSub = sso.price * ssoSel;
-        monthly -= ssoSub;
-        ssoNote = `SSO bonificado por MRR ≥ $500 (−${fmt(ssoSub)})`;
-      }
-
-      // Sandbox 15%
-      let sandboxValue = 0;
-      const qtySandbox = Number(document.getElementById('qtySandbox').value) || 1;
-      if (state.applySandbox && licenseBase > 0) {
-        sandboxValue = +(licenseBase * 0.15 * qtySandbox).toFixed(2);
-        monthly += sandboxValue;
-      }
-
-      // Calcular descuento general
-      let descuentoValue = 0;
-      const tipoDescuento = document.getElementById('tipoDescuento').value;
-      const valorDescuento = Number(document.getElementById('valorDescuento').value) || 0;
+      // Crear un PDF simple usando window.print() ya que no tenemos jsPDF disponible
+      const ventanaImpresion = window.open('', '_blank');
+      const cliente = document.getElementById('cliente').value || 'Cliente';
       
-      if (valorDescuento > 0) {
-        if (tipoDescuento === 'porcentaje') {
-          descuentoValue = +((monthly + onetime) * valorDescuento / 100).toFixed(2);
-        } else {
-          descuentoValue = valorDescuento;
-        }
-      }
-
-      // Calcular descuentos por categoría
-      let descuentosCategoriasValue = 0;
-      const descuentosCategorias = [];
+      let precioJB = 0;
+      let nombrePlanJB = '';
       
-      for (const [categoria, desc] of state.descuentosCategorias.entries()) {
-        let subtotalCategoria = 0;
-        for (const [id, qty] of state.qty.entries()) {
-          const it = CATALOGO.find(x => x.id === id);
-          if (it && it.category === categoria) {
-            const isMonthly = it.charge === 'monthly' || it.charge === 'hourly-monthly';
-            const isOnetime = it.charge === 'onetime' || it.charge === 'hourly-onetime';
-            
-            if (isMonthly || isOnetime) {
-              subtotalCategoria += it.price * qty;
-            }
-          }
-        }
-        
-        if (subtotalCategoria > 0) {
-          let descCategoria = 0;
-          if (desc.tipo === 'porcentaje') {
-            descCategoria = +(subtotalCategoria * desc.valor / 100).toFixed(2);
-          } else {
-            descCategoria = Math.min(desc.valor, subtotalCategoria);
-          }
-          
-          descuentosCategoriasValue += descCategoria;
-          descuentosCategorias.push({
-            categoria: categoria.split('—')[0].trim(),
-            subtotal: subtotalCategoria,
-            descuento: descCategoria,
-            tipo: desc.tipo,
-            valor: desc.valor
-          });
-        }
-      }
-
-      // Calcular Costo Recurrente JB para PDF
-      let jbRecurringCostPDF = 0;
-      const jbValuesPDF = getCurrentJBValues();
-      
-      if (jbValuesPDF) {
-        const feePercent = jbValuesPDF.byoLLM ? 15 : 30;
-        const numiaFeeAmount = jbValuesPDF.tokensCost * (feePercent / 100);
-        
-        jbRecurringCostPDF = jbValuesPDF.totalCost + jbValuesPDF.tokensCost + numiaFeeAmount;
-        
-        // Agregar JB Recurring Cost a las filas del PDF si es mayor a 0
-        if (jbRecurringCostPDF > 0) {
-          rows.push([
-            'Journey Builder',
-            'Journey Builder',
-            'Mensual',
-            '1',
-            fmt(jbRecurringCostPDF),
-            fmt(jbRecurringCostPDF)
-          ]);
-        }
-      }
-
-      // Aplicar descuentos al total
-      if (descuentoValue > 0 || descuentosCategoriasValue > 0) {
-        monthly += onetime;
-        monthly -= descuentoValue + descuentosCategoriasValue;
-        onetime = 0;
-      }
-
-      // Header con logo
-      try {
-        // Agregar logo de Numia
-        const logoImg = new Image();
-        logoImg.src = 'images/numia.png';
-        logoImg.onload = function() {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          canvas.width = logoImg.width;
-          canvas.height = logoImg.height;
-          ctx.drawImage(logoImg, 0, 0);
-          
-          const logoDataUrl = canvas.toDataURL('image/png');
-          doc.addImage(logoDataUrl, 'PNG', marginX, marginY - 15, 40, 20);
-          
-          // Continuar con el resto del PDF
-          doc.setFontSize(18);
-          doc.text('Cotización Numia', marginX + 50, marginY);
-          doc.setFontSize(11);
-          doc.text(`Fecha: ${fecha}`, marginX + 50, marginY + 18);
-          doc.text(`Cliente: ${cliente}`, marginX + 50, marginY + 34);
+      if (jbPlanSeleccionado === 'custom') {
+        precioJB = calcularPrecioCustomJB();
+        nombrePlanJB = 'Custom';
+      } else if (jbPlanSeleccionado === 'enterprise') {
+        precioJB = calcularPrecioEnterpriseJB();
+        nombrePlanJB = 'Enterprise';
+      } else {
+        const preciosJB = {
+          'starter': 400,
+          'professional': 800
         };
-      } catch (e) {
-        // Si falla el logo, continuar sin él
-        doc.setFontSize(18);
-        doc.text('Cotización Numia', marginX, marginY);
-        doc.setFontSize(11);
-        doc.text(`Fecha: ${fecha}`, marginX, marginY + 18);
-        doc.text(`Cliente: ${cliente}`, marginX, marginY + 34);
+        precioJB = preciosJB[jbPlanSeleccionado] || 0;
+        nombrePlanJB = jbPlanSeleccionado.charAt(0).toUpperCase() + jbPlanSeleccionado.slice(1);
       }
-
-      // Tabla
-      doc.autoTable({
-        head: [['Categoría', 'Ítem', 'Tipo', 'Cant.', 'Precio unit.', 'Subtotal']],
-        body: rows.length ? rows : [['—','Sin ítems seleccionados','—','—','—','—']],
-        startY: marginY + 50,
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [30, 64, 175] },
-        columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 220 } }
-      });
-
-      let y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 12 : marginY + 62;
-      doc.setFontSize(11);
-      doc.text(`Subtotal mensual (sin Sandbox): ${fmt(Math.max(monthly + jbRecurringCostPDF - sandboxValue - descuentoValue - descuentosCategoriasValue, 0))}`, marginX, y); y += 16;
-      doc.text(`Sandbox 15%(anual)  × ${qtySandbox} ambiente(s) (sobre licencias): ${fmt(sandboxValue)}`, marginX, y); y += 16;
-      if (descuentoValue > 0) { 
-        const descText = tipoDescuento === 'porcentaje' ? `${valorDescuento}%` : `${fmt(valorDescuento)}`;
-        doc.text(`Descuento general (${descText}): -${fmt(descuentoValue)}`, marginX, y); y += 16; 
-      }
-      if (descuentosCategoriasValue > 0) {
-        doc.text(`Descuentos por categoría: -${fmt(descuentosCategoriasValue)}`, marginX, y); y += 16;
-        // Mostrar detalle de descuentos por categoría
-        descuentosCategorias.forEach(desc => {
-          const descText = desc.tipo === 'porcentaje' ? `${desc.valor}%` : `${fmt(desc.valor)}`;
-          doc.setFontSize(9);
-          doc.text(`  ${desc.categoria} (${descText}): -${fmt(desc.descuento)}`, marginX + 20, y); y += 14;
-        });
-        doc.setFontSize(11);
-      }
-      if (ssoNote) { doc.text(ssoNote, marginX, y); y += 16; }
-      doc.text(`Subtotal único: ${fmt(onetime)}`, marginX, y); y += 18;
-      doc.setFont(undefined, 'bold');
-      doc.text(`TOTAL PRIMER MES: ${fmt(monthly + onetime + jbRecurringCostPDF)}`, marginX, y); y += 18;
-      doc.setFont(undefined, 'normal');
-
-      // Notas
-      const notas = document.getElementById('notas').value || '';
-      const notasBase = 'Precios en USD. Paquetes marcados como "Sujeto a aprobación" pueden variar. Mínimos de alquiler aplican (24 meses).';
-      const textoNotas = [notasBase, notas].filter(Boolean).join('\n');
-
-      doc.setFontSize(10);
-      doc.text('Notas:', marginX, y);
-      doc.setFontSize(9);
-      doc.text(textoNotas, marginX, y + 14, { maxWidth: 515 });
-
-      const fileName = `Cotizacion_Numia_${today.toISOString().slice(0,10)}.pdf`;
-      doc.save(fileName);
+      
+      ventanaImpresion.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Cotización JB Chatbot</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .plan { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .total { font-size: 24px; font-weight: bold; text-align: center; margin-top: 30px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Cotización JB Chatbot</h1>
+            <p><strong>Cliente:</strong> ${cliente}</p>
+            <p><strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>
+          </div>
+          
+          <div class="plan">
+            <h2>JB Chatbot - ${nombrePlanJB}</h2>
+            <p>Solución de chatbot inteligente</p>
+            <p><strong>Precio:</strong> $${precioJB.toLocaleString()}</p>
+          </div>
+          
+          <div class="total">
+            Total: $${precioJB.toLocaleString()}
+          </div>
+        </body>
+        </html>
+      `);
+      
+      ventanaImpresion.document.close();
+      ventanaImpresion.print();
     }
 
-    // Eventos
-    document.getElementById('chkSandbox').addEventListener('change', recompute);
-    document.getElementById('qtySandbox').addEventListener('input', recompute);
-    document.getElementById('tipoDescuento').addEventListener('change', recompute);
-    document.getElementById('valorDescuento').addEventListener('input', recompute);
-    document.getElementById('btnGenerarPDF').addEventListener('click', generarPDF);
-    
-    // Toggle descuentos por categoría
-    document.getElementById('toggleDescuentosCategorias').addEventListener('click', function() {
-      const cont = document.getElementById('descuentosCategorias');
-      const btn = this;
-      
-      if (cont.classList.contains('hidden')) {
-        cont.classList.remove('hidden');
-        btn.textContent = 'Ocultar';
-      } else {
-        cont.classList.add('hidden');
-        btn.textContent = 'Mostrar';
-      }
-    });
-
-    // Init
-    renderCatalog();
-    recompute();
-    
-    // Initialize Journey Builder package details (always visible)
-    console.log('Initializing Journey Builder package details...');
-    hideJBPackageDetails(); // This now just clears the values, doesn't hide the section
-    
-    // Log available models for debugging
-    console.log('Available JB Models:', Object.keys(JB_MODELS));
-    console.log('JB Models with pricing:', JB_MODELS);
-    
-    // Manual test function - you can call this from console: testNumiaFee()
-    window.testNumiaFee = function() {
-      console.log('Manual test of Numia Fee update...');
-      const element = document.getElementById('jb_numia_fee_amount');
-      console.log('Element found:', element);
-      console.log('Element current text:', element ? element.textContent : 'NOT FOUND');
-      console.log('Element current innerHTML:', element ? element.innerHTML : 'NOT FOUND');
-      
-      if (element) {
-        element.textContent = '$999.999';
-        element.innerHTML = '$999.999';
-        console.log('Set to $999.999, current value:', element.textContent);
-        setTimeout(() => {
-          element.textContent = '$0.000';
-          element.innerHTML = '$0.000';
-          console.log('Reset to $0.000, current value:', element.textContent);
-        }, 2000);
-      }
-    };
-    
-    // Test the actual calculation
-    window.testCalculation = function() {
-      console.log('Testing actual calculation...');
-      const tokensCost = 630;
-      const feePercent = 15;
-      const result = tokensCost * (feePercent / 100);
-      console.log(`Test: ${tokensCost} * (${feePercent} / 100) = ${result}`);
-      updateNumiaFee(tokensCost, false);
-    };
-
-    // Test custom executions field
-    window.testCustomExecutions = function() {
-      console.log('=== TESTING CUSTOM EXECUTIONS ===');
-      const customInput = document.getElementById('jb_custom_executions');
-      console.log('Custom executions input found:', customInput);
-      
-      if (customInput) {
-        console.log('Input value:', customInput.value);
-        console.log('Input disabled:', customInput.disabled);
-        console.log('Input readonly:', customInput.readOnly);
-        console.log('Input style:', customInput.style.cssText);
-        console.log('Input classes:', customInput.className);
-        
-        // Try to change the value programmatically
-        customInput.value = '200000';
-        customInput.dispatchEvent(new Event('input', { bubbles: true }));
-        console.log('Programmatically changed value to 200000 and triggered input event');
-      } else {
-        console.error('Custom executions input not found');
-      }
-    };
-
-    // Test recurring cost calculation
-    window.testRecurringCost = function() {
-      console.log('=== TESTING RECURRING COST CALCULATION ===');
-      const jbValues = getCurrentJBValues();
-      console.log('Current JB Values:', jbValues);
-      
-      if (jbValues) {
-        const feePercent = jbValues.byoLLM ? 15 : 30;
-        const numiaFeeAmount = jbValues.tokensCost * (feePercent / 100);
-        const expectedRecurringCost = jbValues.totalCost + jbValues.tokensCost + numiaFeeAmount;
-        
-        console.log('Calculation breakdown:');
-        console.log('- Total Cost:', jbValues.totalCost);
-        console.log('- Tokens Cost:', jbValues.tokensCost);
-        console.log('- Original Tokens Cost:', jbValues.originalTokensCost);
-        console.log('- BYO LLM:', jbValues.byoLLM);
-        console.log('- Fee Percent:', feePercent);
-        console.log('- Numia Fee Amount (calculated on tokensCost):', numiaFeeAmount);
-        console.log('- Expected Recurring Cost:', expectedRecurringCost);
-        
-        const currentRecurringCostElement = document.getElementById('jb_recurring_cost');
-        console.log('Current displayed value:', currentRecurringCostElement ? currentRecurringCostElement.textContent : 'NOT FOUND');
-        
-        // Also check the displayed values in the UI
-        const totalCostElement = document.getElementById('jb_total_cost');
-        const tokensCostElement = document.getElementById('jb_tokens_cost');
-        const feeElement = document.getElementById('jb_numia_fee_amount');
-        
-        console.log('UI Displayed Values:');
-        console.log('- Total Cost (UI):', totalCostElement ? totalCostElement.textContent : 'NOT FOUND');
-        console.log('- Tokens Cost (UI):', tokensCostElement ? tokensCostElement.textContent : 'NOT FOUND');
-        console.log('- Fee Amount (UI):', feeElement ? feeElement.textContent : 'NOT FOUND');
-      } else {
-        console.error('Could not get JB values');
-      }
-    };
-    
-    // Debug function to find all possible elements
-    window.debugElements = function() {
-      console.log('=== DEBUGGING ELEMENTS ===');
-      console.log('1. By ID:', document.getElementById('jb_numia_fee_amount'));
-      console.log('2. By querySelector ID:', document.querySelector('#jb_numia_fee_amount'));
-      console.log('3. All elements with text-lg class:', document.querySelectorAll('.text-lg'));
-      console.log('4. All elements with text-blue-800 class:', document.querySelectorAll('.text-blue-800'));
-      console.log('5. All elements in jb_package_details:', document.querySelectorAll('#jb_package_details *'));
-      console.log('6. Last div in jb_package_details:', document.querySelector('#jb_package_details div:last-child'));
-      console.log('7. All divs with font-semibold:', document.querySelectorAll('div.font-semibold'));
-      
-      // Try to find the specific element by text content
-      const allElements = document.querySelectorAll('*');
-      allElements.forEach((el, index) => {
-        if (el.textContent && el.textContent.includes('$0.000') && el.textContent.includes('% del Numia Fee')) {
-          console.log(`Found element with $0.000 text at index ${index}:`, el);
-        }
-      });
-    };
-
-    window.testResumen = function() {
-      console.log('=== TESTING RESUMEN ===');
-      const jbValues = getCurrentJBValues();
-      console.log('Current JB Values:', jbValues);
-      
-      if (jbValues) {
-        const feePercent = jbValues.byoLLM ? 15 : 30;
-        const numiaFeeAmount = jbValues.tokensCost * (feePercent / 100);
-        const expectedRecurringCost = jbValues.totalCost + jbValues.tokensCost + numiaFeeAmount;
-        
-        console.log('Expected JB Recurring Cost for resumen:', expectedRecurringCost);
-        console.log('Should appear in resumen as "Journey Builder" with this amount');
-      } else {
-        console.log('No JB values found - make sure to select a package and model');
-      }
-      
-      // Check state.qty for JB items
-      console.log('Current state.qty entries:');
-      for (const [key, value] of state.qty.entries()) {
-        if (key.startsWith('jb_')) {
-          console.log(`- ${key}: ${value}`);
-        }
-      }
-    };
-
-    window.testJBImplementation = function() {
-      console.log('=== TESTING JB IMPLEMENTATION ===');
-      const jbImplSelect = document.getElementById('jb_impl_select');
-      const hoursElement = document.getElementById('jb_impl_hours');
-      const costElement = document.getElementById('jb_impl_cost');
-      
-      console.log('JB Implementation Select:', jbImplSelect?.value);
-      console.log('Hours Element:', hoursElement?.textContent);
-      console.log('Cost Element:', costElement?.textContent);
-      
-      // Test all implementation packs
-      const packs = ['jb_impl_setup', 'jb_impl_basic', 'jb_impl_extended', 'jb_impl_full', 'jb_impl_custom'];
-      const expectedCosts = [400, 800, 1200, 2000, 4000]; // 8*50, 16*50, 24*50, 40*50, 80*50
-      
-      console.log('Expected costs for each pack:');
-      packs.forEach((pack, index) => {
-        const hours = JB_IMPLEMENTATION_PACKS[pack.replace('jb_impl_', '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())];
-        const expectedCost = hours * 50;
-        console.log(`- ${pack}: ${hours} hours × $50 = $${expectedCost}`);
-      });
-    };
-
-    window.testJBResumen = function() {
-      console.log('=== TESTING JB RESUMEN ===');
-      
-      // Check if elements exist
-      const packageSelect = document.getElementById('jb_package_select');
-      const modelSelect = document.getElementById('jb_model_select');
-      const byoLLM = document.getElementById('jb_byo_llm');
-      
-      console.log('Package Select:', packageSelect?.value);
-      console.log('Model Select:', modelSelect?.value);
-      console.log('BYO LLM:', byoLLM?.checked);
-      
-      // Test getCurrentJBValues
-      const jbValues = getCurrentJBValues();
-      console.log('getCurrentJBValues result:', jbValues);
-      
-      if (jbValues) {
-        const feePercent = jbValues.byoLLM ? 15 : 30;
-        const numiaFeeAmount = jbValues.tokensCost * (feePercent / 100);
-        const expectedRecurringCost = jbValues.totalCost + jbValues.tokensCost + numiaFeeAmount;
-        
-        console.log('Expected JB Recurring Cost:', expectedRecurringCost);
-        console.log('Should appear in resumen as "Journey Builder"');
-        
-        // Force recompute to see debug logs
-        console.log('Calling recompute() to see debug logs...');
-        recompute();
-      } else {
-        console.log('❌ No JB values found. Make sure to:');
-        console.log('1. Select a package in Journey Builder');
-        console.log('2. Select a model in Journey Builder');
-        console.log('3. Both selections must be valid');
-      }
-    };
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', init);
   </script>
-
-  <div class="JB" >
-
-
-    <journey-builder-chat
-        window_title="Asistente de cotizaciones"
-        flow_id="dbd4b2c7-6a04-46a3-b397-7ac27e62cf14"
-        host_url="https://api.journey-builder.desa.numia.co"
-        api_key="sk-Nvozomq1VxUSZO3z5xPLlbuHDeas5ytE83XnH5EG0Zo"
-                chat_position='top-left'>
-    </journey-builder-chat>
-
-
-
-    <!--journey-builder-chat
-
-
-          window_title="Asistente de Numiacity"
-    flow_id="73a88122-8b8d-471c-b9f9-72f6820b50a5"
-    host_url="https://journey-builder.desa.numia.co"
-    api_key="sk-rDCkKbYrN6qVvfebL5-2pD9gvmR4WuKyVqHevdqZyXU"
-        chat_position='top-left'
-height=400>
-
-  
-            </journey-builder-chat-->
-
-
-</div>
 </body>
 </html>
