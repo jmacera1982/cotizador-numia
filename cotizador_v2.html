@@ -109,7 +109,7 @@
             <div class="text-3xl">🏢</div>
             <div>
               <h4 class="text-lg font-semibold text-slate-800">compañia</h4>
-              <p class="text-slate-600 text-sm">Configuración global para toda tu organización</p>
+              <p class="text-slate-600 text-sm">Configuración global para toda tu organización (los costos son mensuales)</p>
             </div>
           </div>
           
@@ -121,7 +121,7 @@
                   <span class="text-lg">📱</span>
                   <span class="text-sm font-medium">SMS</span>
                 </div>
-                <div class="text-sm font-bold text-green-600">$25</div>
+                <div class="text-sm font-bold text-green-600">$10</div>
               </div>
               <p class="text-xs text-slate-600 mb-2">Integración con carrier SMS, cotizar si el cliente requiere enviar sms desde Numia App</p>
               <p class="text-xs text-orange-600 mb-3">⚠️ Solo integración, no incluye costos de envíos</p>
@@ -139,7 +139,7 @@
                   <span class="text-lg">💬</span>
                   <span class="text-sm font-medium">WhatsApp</span>
                 </div>
-                <div class="text-sm font-bold text-green-600">$35</div>
+                <div class="text-sm font-bold text-green-600">$10</div>
               </div>
               <p class="text-xs text-slate-600 mb-2">Integración con Meta WhatsApp, incluir si el cliente requiere enviar notificaciones de Whatsapp desde Numia App.</p>
               <p class="text-xs text-orange-600 mb-3">⚠️ Solo integración, no incluye cuentas ni costos de envíos</p>
@@ -157,7 +157,7 @@
                   <span class="text-lg">🧪</span>
                   <span class="text-sm font-medium">Sandbox</span>
                 </div>
-                <div class="text-sm font-bold text-green-600">$100</div>
+                <div class="text-sm font-bold text-green-600">$10</div>
               </div>
               <p class="text-xs text-slate-600 mb-3">Ambiente de pruebas</p>
               <div class="flex items-center gap-2">
@@ -204,6 +204,23 @@
               <div class="flex items-center gap-2">
                 <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
                        data-addon="fila-virtual">
+                <span class="text-sm text-slate-700">Incluir</span>
+              </div>
+            </div>
+            
+            <!-- SSO -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🔐</span>
+                  <span class="text-sm font-medium">SSO</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$100</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-2">Single Sign-On para autenticación centralizada</p>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                       data-addon="sso">
                 <span class="text-sm text-slate-700">Incluir</span>
               </div>
             </div>
@@ -258,7 +275,7 @@
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="text-slate-400">•</span>
-                    <span>LLM (GPT‑4o mini): <strong>7M</strong></span>
+                    <span>LLM (GPT‑4o mini): <strong>1M</strong></span>
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="text-slate-400">•</span>
@@ -393,11 +410,20 @@
               <div class="text-sm text-yellow-800">
                 <strong>Nota importante sobre WhatsApp:</strong> La integración con WhatsApp no incluye el costo de la cuenta de WhatsApp Business ni las interacciones/mensajes. Estos costos son adicionales y deben ser gestionados directamente con WhatsApp.
               </div>
+          
             </div>
           </div>
           
           <!-- Nota sobre Agentes de Citas y Turnos -->
-    
+              <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start gap-2">
+              <span class="text-yellow-600 text-sm">⚠️</span>
+              <div class="text-sm text-yellow-800">
+                <strong>Integraciones en JB:</strong>Para cada integración en JB se deben considerar 50 horas de desarrolllo.
+                
+              </div>
+            </div>
+          </div>
           
           <!-- Configuración Enterprise (se muestra solo si se selecciona Enterprise) -->
           <div id="enterpriseConfig" class="mt-6 p-4 bg-white rounded-lg border border-purple-200" style="display: none;">
@@ -417,7 +443,7 @@
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                   <span>Plan Base:</span>
-                  <span>$800</span>
+                  <span>$1600</span>
                 </div>
                 <div class="flex justify-between">
                   <span>OCR:</span>
@@ -425,7 +451,7 @@
                 </div>
                 <div class="flex justify-between font-semibold border-t pt-2">
                   <span>Total:</span>
-                  <span id="desgloseEnterpriseTotal">$800</span>
+                  <span id="desgloseEnterpriseTotal">$1600</span>
                 </div>
               </div>
             </div>
@@ -470,14 +496,6 @@
                 <div class="flex justify-between">
                   <span>OCR:</span>
                   <span id="desgloseOCR">0 × $0.008 = $0</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>Costo Base:</span>
-                  <span id="desgloseCostoBase">$1,000</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>Margen (30%):</span>
-                  <span id="desgloseMargen">$300</span>
                 </div>
                 <div class="flex justify-between font-semibold border-t pt-2">
                   <span>Total:</span>
@@ -624,37 +642,40 @@
         id: 'videollamada',
         nombre: 'Videollamadas',
         descripcion: 'Comunicación por video HD, incluye 40 hs de grabación por usaurio',
-        precio: 40,
+        precio: 22,
         icono: '📹'
       },
       {
         id: 'livechat',
         nombre: 'Live Chat',
         descripcion: 'Chat en tiempo real',
-        precio: 30,
+        precio: 15,
         icono: '💬'
       },
       {
         id: 'cobrowse',
         nombre: 'Co-browse',
-        descripcion: 'Navegación colaborativa, incluye 20 horas por usuario',
-        precio: 30,
-        icono: '🌐'
+        descripcion: 'Navegación colaborativa, se calcula en función de las horas de videollamada por usuario',
+        precio: 1.6,
+        icono: '🌐',
+        dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
       },
       {
         id: 'analisis-sentimiento',
         nombre: 'Análisis de Sentimiento',
-        descripcion: 'Análisis emocional avanzado incluye 40 hs de grabación por usuario',
-        precio: 110,
-        icono: '😊'
+        descripcion: 'Análisis de sentimientos se calcula de forma automática contemplando las horas de videollamada por usuario',
+        precio: 1.25,
+        icono: '😊',
+        dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
       },
       {
         id: 'pantallas',
         nombre: 'Pantallas Digitales',
         descripcion: 'Pantallas para información y comunicación',
-        precio: 50,
+        precio: 25,
         icono: '📺',
-        esCantidad: true // Indica que esta característica requiere cantidad
+        esCantidad: true, // Indica que esta característica requiere cantidad
+        cantidadMinimaGratuita: true // Indica que tiene cantidad mínima sin costo
       },
       {
         id: 'voz',
@@ -670,8 +691,40 @@
         descripcion: 'Asistente IA avanzado',
         precio: 30,
         icono: '🤖'
+      },
+      {
+        id: 'paquete-videollamada',
+        nombre: 'Paquete 8 hs de Videollamada adicional',
+        descripcion: 'Paquete adicional de 8 horas de videollamada',
+        precio: 15,
+        icono: '📹',
+        esPaquete: true // Indica que es un addon de paquete numérico
+      },
+      {
+        id: 'paquete-grabaciones',
+        nombre: 'Paquete 8 hs de grabaciones adicionales',
+        descripcion: 'Paquete adicional de 8 horas de grabaciones',
+        precio: 15,
+        icono: '🎥',
+        esPaquete: true // Indica que es un addon de paquete numérico
+      },
+      {
+        id: 'transcripcion',
+        nombre: 'Transcripción',
+        descripcion: 'Las horas de transcripción se calculan de forma automática contemplando las horas de videollamada por usuario',
+        precio: 0.5,
+        icono: '📝',
+        dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
       }
     ];
+
+    // Configuración de cantidades mínimas de cartelería digital sin costo por tipo de sucursal
+    const cantidadMinimaCarteleria = {
+      'sucursal-5': 2,    // Sucursal Pequeña: 2 pantallas sin costo
+      'sucursal-10': 3,   // Sucursal Mediana: 3 pantallas sin costo
+      'sucursal-30': 4,   // Sucursal Grande: 4 pantallas sin costo
+      'empresarial': 4    // Plan Empresarial: 4 pantallas sin costo
+    };
 
     // Configuración de costos unitarios para JB Chatbot
     const costosUnitarios = {
@@ -704,6 +757,7 @@
       tenantAddons.set('sandbox', 0);
       tenantAddons.set('citas', false);
       tenantAddons.set('fila-virtual', false);
+      tenantAddons.set('sso', false);
     }
 
     // Renderizar planes
@@ -822,19 +876,60 @@
                     <p class="text-xs text-slate-600 mb-3">${caracteristica.descripcion}</p>
                     
                     ${caracteristica.esCantidad ? `
-                      <div class="flex items-center gap-2">
-                        <button class="btnMenosCaracteristica w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
-                                data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${!estaSeleccionada ? 'disabled' : ''}>
-                          <span class="text-slate-600 text-xs font-bold">-</span>
-                        </button>
-                        <input type="number" min="0" max="20" value="${cantidadCaracteristica}" 
-                               class="w-12 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 cantidad-caracteristica" 
-                               data-plan="${planId}" data-caracteristica="${caracteristica.id}" />
-                        <button class="btnMasCaracteristica w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
-                                data-plan="${planId}" data-caracteristica="${caracteristica.id}">
-                          <span class="text-slate-600 text-xs font-bold">+</span>
-                        </button>
-                        <span class="text-xs text-slate-500 ml-2">cantidad</span>
+                      <div class="space-y-2">
+                        ${caracteristica.cantidadMinimaGratuita ? `
+                          <div class="bg-green-50 border border-green-200 rounded-lg p-2 mb-2">
+                            <div class="flex items-center gap-2">
+                              <span class="text-green-600 text-sm">✓</span>
+                              <span class="text-xs text-green-700 font-medium">
+                                Incluye ${cantidadMinimaCarteleria[planId] || 0} pantallas sin costo
+                              </span>
+                            </div>
+                          </div>
+                        ` : ''}
+                        <div class="flex items-center gap-2">
+                          <button class="btnMenosCaracteristica w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                  data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${!estaSeleccionada ? 'disabled' : ''}>
+                            <span class="text-slate-600 text-xs font-bold">-</span>
+                          </button>
+                          <input type="number" min="0" max="20" value="${cantidadCaracteristica}" 
+                                 class="w-12 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 cantidad-caracteristica" 
+                                 data-plan="${planId}" data-caracteristica="${caracteristica.id}" />
+                          <button class="btnMasCaracteristica w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                  data-plan="${planId}" data-caracteristica="${caracteristica.id}">
+                            <span class="text-slate-600 text-xs font-bold">+</span>
+                          </button>
+                          <span class="text-xs text-slate-500 ml-2">cantidad</span>
+                        </div>
+                        ${caracteristica.cantidadMinimaGratuita ? `
+                          <div class="text-xs text-slate-500">
+                            Total: ${cantidadCaracteristica} pantallas 
+                            ${cantidadCaracteristica > (cantidadMinimaCarteleria[planId] || 0) ? 
+                              `(${(cantidadMinimaCarteleria[planId] || 0)} incluidas + ${cantidadCaracteristica - (cantidadMinimaCarteleria[planId] || 0)} adicionales)` : 
+                              `(${cantidadCaracteristica} incluidas)`
+                            }
+                          </div>
+                        ` : ''}
+                      </div>
+                    ` : caracteristica.esPaquete ? `
+                      <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                          <button class="btnMenosPaquete w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                  data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${!estaSeleccionada ? 'disabled' : ''}>
+                            <span class="text-slate-600 text-xs font-bold">-</span>
+                          </button>
+                          <input type="number" min="0" max="100" value="${cantidadCaracteristica}" 
+                                 class="w-16 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 cantidad-paquete" 
+                                 data-plan="${planId}" data-caracteristica="${caracteristica.id}" />
+                          <button class="btnMasPaquete w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                  data-plan="${planId}" data-caracteristica="${caracteristica.id}">
+                            <span class="text-slate-600 text-xs font-bold">+</span>
+                          </button>
+                          <span class="text-xs text-slate-500 ml-2">paquetes</span>
+                        </div>
+                        <div class="text-xs text-slate-500">
+                          Total: ${cantidadCaracteristica} paquetes × $${caracteristica.precio} = $${cantidadCaracteristica * caracteristica.precio}
+                        </div>
                       </div>
                     ` : caracteristica.esVoz ? `
                       <div class="space-y-3">
@@ -987,6 +1082,61 @@
             actualizarResumen();
             calcularTotal();
           }
+        });
+      });
+      
+      // Event listeners para paquetes
+      container.querySelectorAll('.btnMenosPaquete').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const cantidadActual = data.caracteristicas.get(caracteristicaId) || 0;
+          
+          if (cantidadActual > 0) {
+            data.caracteristicas.set(caracteristicaId, cantidadActual - 1);
+            sucursalesSeleccionadas.set(planId, data);
+            renderSucursales();
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.btnMasPaquete').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const cantidadActual = data.caracteristicas.get(caracteristicaId) || 0;
+          
+          if (cantidadActual < 100) {
+            data.caracteristicas.set(caracteristicaId, cantidadActual + 1);
+            sucursalesSeleccionadas.set(planId, data);
+            renderSucursales();
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.cantidad-paquete').forEach(input => {
+        input.addEventListener('input', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const value = parseInt(this.value) || 0;
+          
+          if (value > 0) {
+            data.caracteristicas.set(caracteristicaId, value);
+          } else {
+            data.caracteristicas.delete(caracteristicaId);
+          }
+          
+          sucursalesSeleccionadas.set(planId, data);
+          renderSucursales();
+          actualizarResumen();
+          calcularTotal();
         });
       });
       
@@ -1164,8 +1314,40 @@
                     
                     if (caracteristica.esCantidad) {
                       // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
-                      totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
-                      descripcionCalculo = `(${cantidadCaracteristica} pantallas)`;
+                      let cantidadACobrar = cantidadCaracteristica;
+                      
+                      // Si es cartelería digital, restar la cantidad mínima gratuita
+                      if (caracteristica.cantidadMinimaGratuita) {
+                        const cantidadMinima = cantidadMinimaCarteleria[planId] || 0;
+                        cantidadACobrar = Math.max(0, cantidadCaracteristica - cantidadMinima);
+                        
+                        if (cantidadCaracteristica > cantidadMinima) {
+                          descripcionCalculo = `(${cantidadMinima} incluidas + ${cantidadACobrar} adicionales)`;
+                        } else {
+                          descripcionCalculo = `(${cantidadCaracteristica} incluidas sin costo)`;
+                        }
+                      } else {
+                        descripcionCalculo = `(${cantidadCaracteristica} pantallas)`;
+                      }
+                      
+                      totalCaracteristica = caracteristica.precio * cantidadACobrar * cantidad;
+                    } else if (caracteristica.esPaquete) {
+                      // Para paquetes: precio × cantidad_paquetes × cantidad_sucursales
+                      if (caracteristica.dependeDeVideollamada) {
+                        // Para paquetes que dependen de videollamada: calcular basado en horas de videollamada
+                        const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+                        totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+                        descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
+                      } else {
+                        // Para paquetes normales: precio × cantidad_paquetes × cantidad_sucursales
+                        totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
+                        descripcionCalculo = `(${cantidadCaracteristica} paquetes)`;
+                      }
+                    } else if (caracteristica.dependeDeVideollamada) {
+                      // Para características que dependen de videollamada: calcular basado en horas de videollamada
+                      const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+                      totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+                      descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
                     } else if (caracteristica.esVoz) {
                       // Para características de voz: calcular según tipo y horas
                       const tipoVoz = caracteristicasSucursal.get('voz-tipo') || 'entrante';
@@ -1211,6 +1393,23 @@
       return total;
     }
 
+    // Función auxiliar para calcular horas de videollamada por sucursal
+    function calcularHorasVideollamada(caracteristicasSucursal) {
+      let horasBase = 0;
+      let paquetesVideollamada = 0;
+      
+      // Verificar si videollamada está seleccionada (40 horas base)
+      if (caracteristicasSucursal.get('videollamada') > 0) {
+        horasBase = 40;
+      }
+      
+      // Verificar paquetes adicionales de videollamada (8 horas por paquete)
+      const paquetesVideollamadaAdicional = caracteristicasSucursal.get('paquete-videollamada') || 0;
+      paquetesVideollamada = paquetesVideollamadaAdicional * 8;
+      
+      return horasBase + paquetesVideollamada;
+    }
+
     // Calcular total
     function calcularTotal() {
       let precioBase = 0;
@@ -1240,7 +1439,29 @@
           if (caracteristica) {
             if (caracteristica.esCantidad) {
               // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
-              precioCaracteristicas += caracteristica.precio * cantidadCaracteristica * cantidad;
+              let cantidadACobrar = cantidadCaracteristica;
+              
+              // Si es cartelería digital, restar la cantidad mínima gratuita
+              if (caracteristica.cantidadMinimaGratuita) {
+                const cantidadMinima = cantidadMinimaCarteleria[planId] || 0;
+                cantidadACobrar = Math.max(0, cantidadCaracteristica - cantidadMinima);
+              }
+              
+              precioCaracteristicas += caracteristica.precio * cantidadACobrar * cantidad;
+            } else if (caracteristica.esPaquete) {
+              // Para paquetes: precio × cantidad_paquetes × cantidad_sucursales
+              if (caracteristica.dependeDeVideollamada) {
+                // Para paquetes que dependen de videollamada: calcular basado en horas de videollamada
+                const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+                precioCaracteristicas += caracteristica.precio * horasVideollamada * cantidad;
+              } else {
+                // Para paquetes normales: precio × cantidad_paquetes × cantidad_sucursales
+                precioCaracteristicas += caracteristica.precio * cantidadCaracteristica * cantidad;
+              }
+            } else if (caracteristica.dependeDeVideollamada) {
+              // Para características que dependen de videollamada: calcular basado en horas de videollamada
+              const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+              precioCaracteristicas += caracteristica.precio * horasVideollamada * cantidad;
             } else if (caracteristica.esVoz) {
               // Para características de voz: calcular según tipo y horas
               const tipoVoz = caracteristicasSucursal.get('voz-tipo') || 'entrante';
@@ -1280,19 +1501,22 @@
       // Calcular precio de Tenant addons
       let precioTenant = 0;
       if (tenantAddons.get('sms')) {
-        precioTenant += 25; // SMS
+        precioTenant += 10; // SMS
       }
       if (tenantAddons.get('whatsapp')) {
-        precioTenant += 35; // WhatsApp
+        precioTenant += 10; // WhatsApp
       }
       if (tenantAddons.get('sandbox')) {
-        precioTenant += 100 * tenantAddons.get('sandbox'); // Sandbox
+        precioTenant += 10 * tenantAddons.get('sandbox'); // Sandbox
       }
       if (tenantAddons.get('citas')) {
         precioTenant += 50 * totalSucursales; // Citas × cantidad de sucursales
       }
       if (tenantAddons.get('fila-virtual')) {
         precioTenant += 50 * totalSucursales; // Fila Virtual × cantidad de sucursales
+      }
+      if (tenantAddons.get('sso')) {
+        precioTenant += 100; // SSO
       }
 
       const subtotal = precioBase + precioCaracteristicas + precioJB + precioTenant;
@@ -1488,10 +1712,7 @@
       const enterpriseOCR = document.getElementById('enterpriseOCR');
       
       if (enterpriseOCR) {
-        // Remover event listeners existentes si los hay
-        enterpriseOCR.removeEventListener('input', actualizarPrecioEnterprise);
-        
-        // Agregar nuevo event listener
+        // Agregar event listener para OCR
         enterpriseOCR.addEventListener('input', function() {
           actualizarPrecioEnterprise();
           actualizarResumen();
@@ -1504,13 +1725,10 @@
     function configurarEventListenersCustom() {
       const customConversaciones = document.getElementById('customConversaciones');
       const customLiveAgents = document.getElementById('customLiveAgents');
+      const customOCR = document.getElementById('customOCR');
       
-      if (customConversaciones && customLiveAgents) {
-        // Remover event listeners existentes si los hay
-        customConversaciones.removeEventListener('input', actualizarPrecioCustom);
-        customLiveAgents.removeEventListener('input', actualizarPrecioCustom);
-        
-        // Agregar nuevos event listeners
+      if (customConversaciones && customLiveAgents && customOCR) {
+        // Agregar event listeners
         customConversaciones.addEventListener('input', function() {
           actualizarPrecioCustom();
           actualizarResumen();
@@ -1518,6 +1736,12 @@
         });
         
         customLiveAgents.addEventListener('input', function() {
+          actualizarPrecioCustom();
+          actualizarResumen();
+          calcularTotal();
+        });
+        
+        customOCR.addEventListener('input', function() {
           actualizarPrecioCustom();
           actualizarResumen();
           calcularTotal();
@@ -1573,7 +1797,7 @@
       const ocr = parseInt(ocrElement.value) || 0;
       
       // Calcular costos
-      const planBase = 800;
+      const planBase = 1600; // Debe coincidir con calcularPrecioEnterpriseJB()
       const costoOCR = ocr * costosUnitarios.valorOCR;
       const total = planBase + costoOCR;
       
@@ -1642,8 +1866,6 @@
       if (desgloseOCR) desgloseOCR.textContent = 
         `${ocr.toLocaleString()} × $${costosUnitarios.valorOCR} = $${costoOCR.toLocaleString()}`;
       
-      if (desgloseCostoBase) desgloseCostoBase.textContent = `$${costoBase.toLocaleString()}`;
-      if (desgloseMargen) desgloseMargen.textContent = `$${Math.round(margen).toLocaleString()}`;
       if (desgloseTotal) desgloseTotal.textContent = `$${Math.round(total).toLocaleString()}`;
     }
 
@@ -1736,8 +1958,40 @@
             
             if (caracteristica.esCantidad) {
               // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
-              totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
-              descripcionCalculo = ` (${cantidadCaracteristica} pantallas)`;
+              let cantidadACobrar = cantidadCaracteristica;
+              
+              // Si es cartelería digital, restar la cantidad mínima gratuita
+              if (caracteristica.cantidadMinimaGratuita) {
+                const cantidadMinima = cantidadMinimaCarteleria[planId] || 0;
+                cantidadACobrar = Math.max(0, cantidadCaracteristica - cantidadMinima);
+                
+                if (cantidadCaracteristica > cantidadMinima) {
+                  descripcionCalculo = ` (${cantidadMinima} incluidas + ${cantidadACobrar} adicionales)`;
+                } else {
+                  descripcionCalculo = ` (${cantidadCaracteristica} incluidas sin costo)`;
+                }
+              } else {
+                descripcionCalculo = ` (${cantidadCaracteristica} pantallas)`;
+              }
+              
+              totalCaracteristica = caracteristica.precio * cantidadACobrar * cantidad;
+            } else if (caracteristica.esPaquete) {
+              // Para paquetes: precio × cantidad_paquetes × cantidad_sucursales
+              if (caracteristica.dependeDeVideollamada) {
+                // Para paquetes que dependen de videollamada: calcular basado en horas de videollamada
+                const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+                totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+                descripcionCalculo = ` (${horasVideollamada} horas de videollamada)`;
+              } else {
+                // Para paquetes normales: precio × cantidad_paquetes × cantidad_sucursales
+                totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
+                descripcionCalculo = ` (${cantidadCaracteristica} paquetes)`;
+              }
+            } else if (caracteristica.dependeDeVideollamada) {
+              // Para características que dependen de videollamada: calcular basado en horas de videollamada
+              const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+              totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+              descripcionCalculo = ` (${horasVideollamada} horas de videollamada)`;
             } else {
               // Para características normales: precio × usuarios × cantidad_sucursales
               totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad;
