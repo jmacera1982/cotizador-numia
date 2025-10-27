@@ -114,6 +114,31 @@
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="tenantAddons">
+            
+            
+            <!-- Sandbox -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🧪</span>
+                  <span class="text-sm font-medium">Sandbox</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$10</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-3">Ambiente de pruebas</p>
+              <div class="flex items-center gap-2">
+                <button class="btnMenosSandbox w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors">
+                  <span class="text-slate-600 text-xs font-bold">-</span>
+                </button>
+                <input type="number" min="0" max="10" value="0" 
+                       class="w-12 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 cantidad-sandbox" />
+                <button class="btnMasSandbox w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors">
+                  <span class="text-slate-600 text-xs font-bold">+</span>
+                </button>
+              </div>
+            </div>
+            
+            
             <!-- SMS -->
             <div class="bg-white rounded-lg p-4 border border-slate-200">
               <div class="flex items-center justify-between mb-2">
@@ -149,29 +174,6 @@
                 <span class="text-sm text-slate-700">Incluir</span>
               </div>
             </div>
-            
-            <!-- Sandbox -->
-            <div class="bg-white rounded-lg p-4 border border-slate-200">
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-lg">🧪</span>
-                  <span class="text-sm font-medium">Sandbox</span>
-                </div>
-                <div class="text-sm font-bold text-green-600">$10</div>
-              </div>
-              <p class="text-xs text-slate-600 mb-3">Ambiente de pruebas</p>
-              <div class="flex items-center gap-2">
-                <button class="btnMenosSandbox w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors">
-                  <span class="text-slate-600 text-xs font-bold">-</span>
-                </button>
-                <input type="number" min="0" max="10" value="0" 
-                       class="w-12 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 cantidad-sandbox" />
-                <button class="btnMasSandbox w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors">
-                  <span class="text-slate-600 text-xs font-bold">+</span>
-                </button>
-              </div>
-            </div>
-            
             <!-- Citas -->
             <div class="bg-white rounded-lg p-4 border border-slate-200">
               <div class="flex items-center justify-between mb-2">
@@ -596,9 +598,8 @@
                 <span class="text-slate-600">JB Chatbot:</span>
                 <span id="precioJB" class="font-semibold">$0</span>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-600">Compañía:</span>
-                <span id="precioTenant" class="font-semibold">$0</span>
+              <div id="detalleCompaniaContainer">
+                <!-- El detalle se generará dinámicamente -->
               </div>
               <div class="border-t pt-4">
                 <div class="flex justify-between items-center mb-2">
@@ -620,7 +621,7 @@
                 </div>
                 <div class="border-t pt-3 mt-3">
                   <div class="flex justify-between items-center mb-2 text-lg font-bold">
-                    <span>Pago Único: </span>
+                    <span>Servicios profesionales: </span>
                     <span id="totalPagoUnico" class="price-display">$0</span>
                   </div>
                 </div>
@@ -755,8 +756,8 @@
       },
       {
         id: 'paquete-videollamada',
-        nombre: 'Paquete 8 hs de Videollamada adicional',
-        descripcion: 'Paquete adicional de 8 horas de videollamada',
+        nombre: 'Paquete 8 hs de Videollamada adicional y grabaciones',
+        descripcion: 'Paquete adicional de 8 horas de videollamada y grabaciones',
         precio: 15,
         icono: '📹',
         esPaquete: true // Indica que es un addon de paquete numérico
@@ -808,6 +809,7 @@
       renderPlanes();
       initTenantAddons();
       setupEventListeners();
+      calcularTotal(); // Inicializar los valores del total
     }
 
     // Inicializar addons del tenant
@@ -1580,11 +1582,20 @@
       if (tenantAddons.get('sandbox')) {
         precioTenant += 10 * tenantAddons.get('sandbox'); // Sandbox
       }
+      
+      // Calcular total de sucursales excluyendo 'individual'
+      let totalSucursalesSinIndividual = 0;
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        if (planId !== 'individual') {
+          totalSucursalesSinIndividual += data.cantidad;
+        }
+      });
+      
       if (tenantAddons.get('citas')) {
-        precioTenant += 50 * totalSucursales; // Citas × cantidad de sucursales
+        precioTenant += 50 * totalSucursalesSinIndividual; // Citas × cantidad de sucursales (sin individual)
       }
       if (tenantAddons.get('fila-virtual')) {
-        precioTenant += 50 * totalSucursales; // Fila Virtual × cantidad de sucursales
+        precioTenant += 50 * totalSucursalesSinIndividual; // Fila Virtual × cantidad de sucursales (sin individual)
       }
       if (tenantAddons.get('sso')) {
         precioTenant += 100; // SSO
@@ -1615,11 +1626,90 @@
       document.getElementById('precioBase').textContent = `$${precioBase.toLocaleString()}`;
       document.getElementById('precioCaracteristicas').textContent = `$${precioCaracteristicas.toLocaleString()}`;
       document.getElementById('precioJB').textContent = `$${precioJB.toLocaleString()}`;
-      document.getElementById('precioTenant').textContent = `$${precioTenant.toLocaleString()}`;
       document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
       document.getElementById('totalRecurrente').textContent = `$${totalRecurrente.toLocaleString()}`;
       document.getElementById('totalPagoUnico').textContent = `$${totalPagoUnico.toLocaleString()}`;
       document.getElementById('totalFinal').textContent = `$${totalFinal.toLocaleString()}`;
+      
+      // Actualizar detalle de Compañía
+      actualizarDetalleCompania(totalSucursalesSinIndividual, precioTenant);
+    }
+    
+    // Función para actualizar el detalle de compañía
+    function actualizarDetalleCompania(totalSucursalesSinIndividual, precioTenant) {
+      const container = document.getElementById('detalleCompaniaContainer');
+      
+      // Solo mostrar si hay algún addon seleccionado
+      const hayAddons = tenantAddons.get('sms') || 
+                       tenantAddons.get('whatsapp') || 
+                       tenantAddons.get('sandbox') > 0 ||
+                       tenantAddons.get('citas') || 
+                       tenantAddons.get('fila-virtual') || 
+                       tenantAddons.get('sso');
+      
+      if (!hayAddons) {
+        container.innerHTML = '';
+        return;
+      }
+      
+      let html = `
+        <div class="mt-2">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-slate-600 font-medium">Compañía:</span>
+            <span class="font-semibold">$${precioTenant.toLocaleString()}</span>
+          </div>
+          <div class="ml-4 space-y-1 text-sm">
+      `;
+      
+      if (tenantAddons.get('sms')) {
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>SMS:</span>
+          <span>$10</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('whatsapp')) {
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>WhatsApp:</span>
+          <span>$10</span>
+        </div>`;
+      }
+      
+      const cantidadSandbox = tenantAddons.get('sandbox') || 0;
+      if (cantidadSandbox > 0) {
+        const precioSandbox = 10 * cantidadSandbox;
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>Sandbox (${cantidadSandbox}):</span>
+          <span>$${precioSandbox}</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('citas')) {
+        const precioCitas = 50 * totalSucursalesSinIndividual;
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>Citas:</span>
+          <span>$${precioCitas}</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('fila-virtual')) {
+        const precioFilaVirtual = 50 * totalSucursalesSinIndividual;
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>Fila Virtual:</span>
+          <span>$${precioFilaVirtual}</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('sso')) {
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>SSO:</span>
+          <span>$100</span>
+        </div>`;
+      }
+      
+      html += `</div></div>`;
+      
+      container.innerHTML = html;
     }
 
     // Configurar event listeners
@@ -1731,7 +1821,6 @@
                   <div>
                     <h4 class="font-semibold">${plan.nombre}</h4>
                     <p class="text-sm text-slate-600">${plan.descripcion}</p>
-                    <p class="text-sm text-blue-600 font-medium">$${plan.precio.toLocaleString()} por sucursal</p>
                   </div>
                 </div>
               </div>
