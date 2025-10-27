@@ -70,7 +70,7 @@
         <img src="images/numia.png" alt="Logo Numia" class="h-12 w-auto" />
         <div>
           <h1 class="text-2xl font-bold tracking-tight">Cotizador Numia V2</h1>
-          <p class="text-sm text-slate-600">Planes de Sucursales con Características Premium</p>
+          <p class="text-sm text-slate-600">Cotiza los planes de sucursales y características de Numia App</p>
         </div>
       </div>
       <div class="flex items-center gap-4">
@@ -419,7 +419,7 @@
             <div class="flex items-start gap-2">
               <span class="text-yellow-600 text-sm">⚠️</span>
               <div class="text-sm text-yellow-800">
-                <strong>Integraciones en JB:</strong>Para cada integración en JB se deben considerar 50 horas de desarrolllo.
+                <strong>Integraciones en JB:</strong> Para cada integración en JB se deben considerar 50 horas de desarrolllo.
                 
               </div>
             </div>
@@ -557,7 +557,7 @@
                 <div class="flex justify-between items-center mb-4">
                   <label class="flex items-center gap-2 text-sm">
                     <input id="chkDescuento" type="checkbox" class="rounded">
-                    Aplicar descuento:
+                    Aplicar descuento (%):
                   </label>
                   <input id="descuento" type="number" min="0" max="100" value="0" 
                          class="w-20 px-2 py-1 rounded border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" 
@@ -856,6 +856,11 @@
                 
                 // Ocultar el paquete de grabaciones
                 if (caracteristica.id === 'paquete-grabaciones') {
+                  return '';
+                }
+                
+                // Ocultar el addon de voz
+                if (caracteristica.id === 'voz') {
                   return '';
                 }
                 
