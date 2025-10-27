@@ -854,6 +854,11 @@
                 const cantidadCaracteristica = caracteristicasSucursal.get(caracteristica.id) || 0;
                 const estaSeleccionada = cantidadCaracteristica > 0;
                 
+                // Ocultar el paquete de grabaciones
+                if (caracteristica.id === 'paquete-grabaciones') {
+                  return '';
+                }
+                
                 // Verificar si esta característica depende de videollamada
                 const dependeDeVideollamada = ['cobrowse', 'analisis-sentimiento'].includes(caracteristica.id);
                 const videollamadaSeleccionada = caracteristicasSucursal.get('videollamada') > 0;
