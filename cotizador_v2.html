@@ -512,6 +512,57 @@
       </div>
     </section>
 
+    <!-- Sección de Pago Único -->
+    <section class="mb-8" id="pagoUnicoSection" style="display: block;">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-2xl font-bold mb-6">Implementación (pago único)</h3>
+        
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6 border border-indigo-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="text-3xl">💼</div>
+            <div>
+              <h4 class="text-lg font-semibold text-slate-800">Servicios Profesionales</h4>
+              <p class="text-slate-600 text-sm">Configuración de horas de servicios adicionales</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Horas Parametrización Numia App -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Cant. Horas Parametrización Numia App</label>
+              <input type="number" id="horasNumiaApp" min="0" value="0" 
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                     placeholder="0" />
+            </div>
+            
+            <!-- Horas Parametrización JB -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Cant. Horas Parametrización JB</label>
+              <input type="number" id="horasJB" min="0" value="0" 
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                     placeholder="0" />
+            </div>
+            
+            <!-- Horas Integración -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Cant. Horas Integración</label>
+              <input type="number" id="horasIntegracion" min="0" value="0" 
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                     placeholder="0" />
+            </div>
+            
+            <!-- Valor de la Hora -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Valor de la Hora</label>
+              <input type="number" id="valorHora" min="0" value="50" 
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                     placeholder="50" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Resumen y Total -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2">
@@ -563,9 +614,19 @@
                          class="w-20 px-2 py-1 rounded border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                          placeholder="%" disabled />
                 </div>
-                <div class="flex justify-between items-center text-2xl font-bold">
-                  <span>Total:</span>
-                  <span id="total" class="price-display">$0</span>
+                <div class="flex justify-between items-center mb-2 text-lg font-bold">
+                  <span>Total Recurrente(MRR):</span>
+                  <span id="totalRecurrente" class="price-display">$0</span>
+                </div>
+                <div class="border-t pt-3 mt-3">
+                  <div class="flex justify-between items-center mb-2 text-lg font-bold">
+                    <span>Pago Único: </span>
+                    <span id="totalPagoUnico" class="price-display">$0</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center text-2xl font-bold border-t pt-3 mt-3">
+                  <span>Total Final:</span>
+                  <span id="totalFinal" class="price-display">$0</span>
                 </div>
               </div>
             </div>
@@ -1533,7 +1594,22 @@
       const descuentoHabilitado = document.getElementById('chkDescuento').checked;
       const porcentajeDescuento = descuentoHabilitado ? parseInt(document.getElementById('descuento').value) || 0 : 0;
       const descuento = subtotal * (porcentajeDescuento / 100);
-      const total = subtotal - descuento;
+      const totalRecurrente = subtotal - descuento;
+
+      // Calcular Pago Único
+      let totalPagoUnico = 0;
+      const horasNumiaApp = parseInt(document.getElementById('horasNumiaApp')?.value || '0') || 0;
+      const horasJB = parseInt(document.getElementById('horasJB')?.value || '0') || 0;
+      const horasIntegracion = parseInt(document.getElementById('horasIntegracion')?.value || '0') || 0;
+      const valorHora = parseInt(document.getElementById('valorHora')?.value || '50') || 50;
+      
+      const totalHoras = horasNumiaApp + horasJB + horasIntegracion;
+      if (totalHoras > 0) {
+        totalPagoUnico = totalHoras * valorHora;
+      }
+
+      // Calcular Total Final
+      const totalFinal = totalRecurrente + totalPagoUnico;
 
       document.getElementById('totalSucursales').textContent = totalSucursales;
       document.getElementById('precioBase').textContent = `$${precioBase.toLocaleString()}`;
@@ -1541,7 +1617,9 @@
       document.getElementById('precioJB').textContent = `$${precioJB.toLocaleString()}`;
       document.getElementById('precioTenant').textContent = `$${precioTenant.toLocaleString()}`;
       document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
-      document.getElementById('total').textContent = `$${total.toLocaleString()}`;
+      document.getElementById('totalRecurrente').textContent = `$${totalRecurrente.toLocaleString()}`;
+      document.getElementById('totalPagoUnico').textContent = `$${totalPagoUnico.toLocaleString()}`;
+      document.getElementById('totalFinal').textContent = `$${totalFinal.toLocaleString()}`;
     }
 
     // Configurar event listeners
@@ -1614,6 +1692,25 @@
           calcularTotal();
         });
       });
+      
+      // Event listeners para Pago Único
+      const horasNumiaAppInput = document.getElementById('horasNumiaApp');
+      const horasJBInput = document.getElementById('horasJB');
+      const horasIntegracionInput = document.getElementById('horasIntegracion');
+      const valorHoraInput = document.getElementById('valorHora');
+      
+      if (horasNumiaAppInput) {
+        horasNumiaAppInput.addEventListener('input', calcularTotal);
+      }
+      if (horasJBInput) {
+        horasJBInput.addEventListener('input', calcularTotal);
+      }
+      if (horasIntegracionInput) {
+        horasIntegracionInput.addEventListener('input', calcularTotal);
+      }
+      if (valorHoraInput) {
+        valorHoraInput.addEventListener('input', calcularTotal);
+      }
       
       // Los event listeners para configuración custom se configurarán cuando se seleccione el plan custom
     }
@@ -2016,12 +2113,24 @@
         yPosition += 10;
       });
       
-      // Total
+      // Totales
       yPosition += 20;
       doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
-      const total = document.getElementById('total').textContent;
-      doc.text(`Total: ${total}`, 20, yPosition);
+      doc.text('Resumen de Totales:', 20, yPosition);
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      
+      const totalRecurrente = document.getElementById('totalRecurrente')?.textContent || '$0';
+      const totalPagoUnico = document.getElementById('totalPagoUnico')?.textContent || '$0';
+      const totalFinal = document.getElementById('totalFinal')?.textContent || '$0';
+      
+      doc.text(`Total Recurrente: ${totalRecurrente}`, 20, yPosition + 15);
+      doc.text(`Pago Único: ${totalPagoUnico}`, 20, yPosition + 25);
+      
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Total Final: ${totalFinal}`, 20, yPosition + 40);
       
       // Guardar
       doc.save(`Cotizacion_Numia_${cliente}_${new Date().toISOString().split('T')[0]}.pdf`);
