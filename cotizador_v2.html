@@ -226,6 +226,23 @@
                 <span class="text-sm text-slate-700">Incluir</span>
               </div>
             </div>
+            
+            <!-- Encuestas -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">📊</span>
+                  <span class="text-sm font-medium">Encuestas</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$10</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-2">Sistema de encuestas y feedback</p>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                       data-addon="encuestas">
+                <span class="text-sm text-slate-700">Incluir</span>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -821,6 +838,7 @@
       tenantAddons.set('citas', false);
       tenantAddons.set('fila-virtual', false);
       tenantAddons.set('sso', false);
+      tenantAddons.set('encuestas', false);
     }
 
     // Renderizar planes
@@ -1600,6 +1618,21 @@
       if (tenantAddons.get('sso')) {
         precioTenant += 100; // SSO
       }
+      
+      // Calcular encuestas: $10 × cantidad de sucursales (individual cuenta como 1)
+      if (tenantAddons.get('encuestas')) {
+        let cantidadEncuestas = 0;
+        sucursalesSeleccionadas.forEach((data, planId) => {
+          if (planId === 'individual') {
+            // Para individual, cuenta como 1 sin importar la cantidad
+            cantidadEncuestas += 1;
+          } else {
+            // Para otros tipos, cuenta la cantidad real
+            cantidadEncuestas += data.cantidad;
+          }
+        });
+        precioTenant += 10 * cantidadEncuestas;
+      }
 
       const subtotal = precioBase + precioCaracteristicas + precioJB + precioTenant;
       const descuentoHabilitado = document.getElementById('chkDescuento').checked;
@@ -1645,7 +1678,8 @@
                        tenantAddons.get('sandbox') > 0 ||
                        tenantAddons.get('citas') || 
                        tenantAddons.get('fila-virtual') || 
-                       tenantAddons.get('sso');
+                       tenantAddons.get('sso') ||
+                       tenantAddons.get('encuestas');
       
       if (!hayAddons) {
         container.innerHTML = '';
@@ -1704,6 +1738,23 @@
         html += `<div class="flex justify-between items-center text-slate-600">
           <span>SSO:</span>
           <span>$100</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('encuestas')) {
+        // Calcular cantidad de encuestas (individual cuenta como 1)
+        let cantidadEncuestas = 0;
+        sucursalesSeleccionadas.forEach((data, planId) => {
+          if (planId === 'individual') {
+            cantidadEncuestas += 1;
+          } else {
+            cantidadEncuestas += data.cantidad;
+          }
+        });
+        const precioEncuestas = 10 * cantidadEncuestas;
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>Encuestas:</span>
+          <span>$${precioEncuestas}</span>
         </div>`;
       }
       
