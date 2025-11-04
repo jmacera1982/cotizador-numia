@@ -583,6 +583,55 @@
       </div>
     </section>
 
+    <!-- Sección de Precios Tentativos Hardware -->
+    <section class="mb-8" id="hardwareSection" style="display: block;">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-2xl font-bold mb-6">Precios Tentativos Hardware</h3>
+        
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 mb-6 border border-amber-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="text-3xl">🖥️</div>
+            <div>
+              <h4 class="text-lg font-semibold text-slate-800">Valores recomendados</h4>
+              <p class="text-slate-600 text-sm">Valores de referencia para hardware</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Kioscos con Impresora -->
+            <div class="bg-white rounded-lg p-6 border border-slate-200">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">🖨️</span>
+                  <h5 class="text-lg font-semibold text-slate-800">Kioscos con Impresora</h5>
+                </div>
+              </div>
+              <p class="text-sm text-slate-600 mb-4">Solución completa con impresora integrada para tickets y documentos</p>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-600">Valor deseable:</span>
+                <span class="text-2xl font-bold text-orange-600">$2,500</span>
+              </div>
+            </div>
+            
+            <!-- Opción Low Cost -->
+            <div class="bg-white rounded-lg p-6 border border-slate-200">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">📱</span>
+                  <h5 class="text-lg font-semibold text-slate-800">Opción Low Cost</h5>
+                </div>
+              </div>
+              <p class="text-sm text-slate-600 mb-4">Tablet o All in one - Solución económica para implementación</p>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-600">Valor deseable:</span>
+                <span class="text-2xl font-bold text-orange-600">$1,000</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Resumen y Total -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2">
@@ -1613,8 +1662,15 @@
       if (tenantAddons.get('citas')) {
         precioTenant += 50 * totalSucursalesSinIndividual; // Citas × cantidad de sucursales (sin individual)
       }
+      // Si hay videollamadas, Fila Virtual no tiene costo
+      let hayVideollamadas = false;
+      sucursalesSeleccionadas.forEach(data => {
+        if ((data.caracteristicas && (data.caracteristicas.get('videollamada') || 0) > 0)) {
+          hayVideollamadas = true;
+        }
+      });
       if (tenantAddons.get('fila-virtual')) {
-        precioTenant += 50 * totalSucursalesSinIndividual; // Fila Virtual × cantidad de sucursales (sin individual)
+        precioTenant += hayVideollamadas ? 0 : (50 * totalSucursalesSinIndividual); // Fila Virtual gratis si hay videollamadas
       }
       if (tenantAddons.get('sso')) {
         precioTenant += 100; // SSO
@@ -1728,7 +1784,14 @@
       }
       
       if (tenantAddons.get('fila-virtual')) {
-        const precioFilaVirtual = 50 * totalSucursalesSinIndividual;
+        // Gratis si hay videollamadas en alguna sucursal
+        let hayVideollamadas = false;
+        sucursalesSeleccionadas.forEach(data => {
+          if ((data.caracteristicas && (data.caracteristicas.get('videollamada') || 0) > 0)) {
+            hayVideollamadas = true;
+          }
+        });
+        const precioFilaVirtual = hayVideollamadas ? 0 : (50 * totalSucursalesSinIndividual);
         html += `<div class="flex justify-between items-center text-slate-600">
           <span>Fila Virtual:</span>
           <span>$${precioFilaVirtual}</span>
