@@ -75,6 +75,22 @@
       </div>
       <div class="flex items-center gap-4">
         <label class="text-sm flex items-center gap-2">
+          País
+          <select id="pais" 
+                  class="px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <option value="argentina">Argentina</option>
+            <option value="bolivia">Bolivia</option>
+            <option value="paraguay">Paraguay</option>
+            <option value="espana">España</option>
+            <option value="uruguay">Uruguay</option>
+            <option value="chile">Chile</option>
+            <option value="peru">Perú</option>
+            <option value="mexico">México</option>
+            <option value="centroamerica">Centroamérica</option>
+            <option value="otro">Otro</option>
+          </select>
+        </label>
+        <label class="text-sm flex items-center gap-2">
           Cliente
           <input id="cliente" type="text" placeholder="Nombre de cliente" 
                  class="px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -653,6 +669,10 @@
                 <span class="text-slate-600">Total Sucursales:</span>
                 <span id="totalSucursales" class="font-semibold">0</span>
               </div>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-slate-500">País:</span>
+                <span id="paisDisplay" class="font-medium text-blue-600">Argentina (Ponderador: 1x)</span>
+              </div>
               <div class="flex justify-between items-center">
                 <span class="text-slate-600">Plan Base:</span>
                 <span id="precioBase" class="font-semibold">$0</span>
@@ -660,6 +680,10 @@
               <div class="flex justify-between items-center">
                 <span class="text-slate-600">Características:</span>
                 <span id="precioCaracteristicas" class="font-semibold">$0</span>
+              </div>
+              <div class="flex justify-between items-center border-t pt-3 mt-3">
+                <span class="text-slate-600 font-medium">Valor de referencia para el país:</span>
+                <span id="valorReferenciaPais" class="font-semibold text-blue-600">$0</span>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-slate-600">JB Chatbot:</span>
@@ -764,14 +788,14 @@
         id: 'atencion-presencial',
         nombre: 'Atención Presencial',
         descripcion: 'Soporte y atención cara a cara',
-        precio: 15,
+        precio: 20,
         icono: '🤝'
       },
       {
         id: 'videollamada',
         nombre: 'Videollamadas',
         descripcion: 'Comunicación por video HD, incluye 40 hs de grabación por usaurio',
-        precio: 22,
+        precio: 38,
         icono: '📹'
       },
       {
@@ -844,6 +868,15 @@
         precio: 0.5,
         icono: '📝',
         dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
+      },
+      {
+        id: 'cabina-virtual',
+        nombre: 'Cabina Virtual',
+        descripcion: 'Cabina virtual para videollamadas',
+        precio: 50,
+        icono: '🏢',
+        esCantidad: true, // Indica que esta característica requiere cantidad
+               dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
       }
     ];
 
@@ -862,6 +895,21 @@
       llmPorConversacion: 10000,
       margenCustom: 0.30, // 30% de margen
       valorOCR: 0.0080 // $0.0080 por OCR
+    };
+
+    // Ponderadores por país
+    const ponderadoresPais = {
+      'argentina': 1,
+      'bolivia': 1,
+      'paraguay': 1,
+      'espana': 1,
+      'uruguay': 1,
+      'chile': 0.6,
+      'Colombia': 0.8,
+      'peru': 0.6,
+      'mexico': 1.2,
+      'centroamerica': 1.2,
+      'otro': 1
     };
 
     // Variables globales
@@ -996,7 +1044,7 @@
                 }
                 
                 // Verificar si esta característica depende de videollamada
-                const dependeDeVideollamada = ['cobrowse', 'analisis-sentimiento'].includes(caracteristica.id);
+                const dependeDeVideollamada = ['cobrowse', 'analisis-sentimiento', 'cabina-virtual'].includes(caracteristica.id);
                 const videollamadaSeleccionada = caracteristicasSucursal.get('videollamada') > 0;
                 
                 // Si depende de videollamada y no está seleccionada, no mostrar
@@ -1198,6 +1246,7 @@
             if (caracteristicaId === 'videollamada') {
               data.caracteristicas.delete('cobrowse');
               data.caracteristicas.delete('analisis-sentimiento');
+              data.caracteristicas.delete('cabina-virtual');
             }
           }
           
@@ -1400,13 +1449,17 @@
         return;
       }
       
+      // Obtener ponderador del país
+      const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
+      const ponderador = ponderadoresPais[paisSeleccionado] || 1;
+      
       // Mostrar cada tipo de sucursal
       sucursalesSeleccionadas.forEach((data, planId) => {
         const plan = planes.find(p => p.id === planId);
         const cantidad = data.cantidad;
         const caracteristicasSucursal = data.caracteristicas || new Set();
         const precioConDescuento = plan.precio * (1 - (plan.descuento || 0) / 100);
-        const totalPlan = precioConDescuento * cantidad;
+        const totalPlan = precioConDescuento * cantidad * ponderador;
         
         html += `
           <div class="bg-gradient-to-r ${plan.color} rounded-xl p-6 text-white">
@@ -1429,6 +1482,7 @@
                 <div>
                   <div class="text-sm opacity-80">Precio original: $${plan.precio.toLocaleString()}</div>
                   ${plan.descuento > 0 ? `<div class="text-sm opacity-80">Con descuento: $${precioConDescuento.toLocaleString()}</div>` : ''}
+                  ${ponderador !== 1 ? `<div class="text-sm opacity-80">Ponderador país (${ponderador}x): $${(precioConDescuento * ponderador).toLocaleString()}</div>` : ''}
                 </div>
                 <div class="text-right">
                   <div class="text-sm opacity-80">Total:</div>
@@ -1471,23 +1525,27 @@
                         descripcionCalculo = `(${cantidadCaracteristica} pantallas)`;
                       }
                       
-                      totalCaracteristica = caracteristica.precio * cantidadACobrar * cantidad;
+                      totalCaracteristica = caracteristica.precio * cantidadACobrar * cantidad * ponderador;
                     } else if (caracteristica.esPaquete) {
                       // Para paquetes: precio × cantidad_paquetes × cantidad_sucursales
                       if (caracteristica.dependeDeVideollamada) {
                         // Para paquetes que dependen de videollamada: calcular basado en horas de videollamada
                         const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
-                        totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+                        totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad * ponderador;
                         descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
                       } else {
                         // Para paquetes normales: precio × cantidad_paquetes × cantidad_sucursales
-                        totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
+                        totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad * ponderador;
                         descripcionCalculo = `(${cantidadCaracteristica} paquetes)`;
                       }
+                    } else if (caracteristica.id === 'cabina-virtual') {
+                      // Cabina virtual: precio fijo por sucursal
+                      totalCaracteristica = caracteristica.precio * cantidad * ponderador;
+                      descripcionCalculo = '';
                     } else if (caracteristica.dependeDeVideollamada) {
                       // Para características que dependen de videollamada: calcular basado en horas de videollamada
                       const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
-                      totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+                      totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad * ponderador;
                       descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
                     } else if (caracteristica.esVoz) {
                       // Para características de voz: calcular según tipo y horas
@@ -1495,15 +1553,15 @@
                       const horasVoz = caracteristicasSucursal.get('voz-horas') || 1;
                       
                       if (tipoVoz === 'entrante') {
-                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios;
+                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios * cantidad * ponderador;
                         descripcionCalculo = `(${horasVoz} horas entrantes × ${plan.usuarios} usuarios)`;
                       } else if (tipoVoz === 'saliente') {
-                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios;
+                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios * cantidad * ponderador;
                         descripcionCalculo = `(${horasVoz} horas salientes × ${plan.usuarios} usuarios)`;
                       }
                     } else {
                       // Para características normales: precio × usuarios × cantidad_sucursales
-                      totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad;
+                      totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad * ponderador;
                       descripcionCalculo = `(${plan.usuarios} usuarios)`;
                     }
                     
@@ -1691,7 +1749,16 @@
         precioTenant += 10 * cantidadEncuestas;
       }
 
-      const subtotal = precioBase + precioCaracteristicas + precioJB + precioTenant;
+      // Aplicar ponderador del país solo a las sucursales (precioBase + precioCaracteristicas)
+      const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
+      const ponderador = ponderadoresPais[paisSeleccionado] || 1;
+      const precioBaseConPonderador = precioBase * ponderador;
+      const precioCaracteristicasConPonderador = precioCaracteristicas * ponderador;
+      
+      // Calcular valor de referencia para el país (valor de sucursales * ponderador)
+      const valorReferenciaPais = (precioBase + precioCaracteristicas) * ponderador;
+
+      const subtotal = precioBaseConPonderador + precioCaracteristicasConPonderador + precioJB + precioTenant;
       const descuentoHabilitado = document.getElementById('chkDescuento').checked;
       const porcentajeDescuento = descuentoHabilitado ? parseInt(document.getElementById('descuento').value) || 0 : 0;
       const descuento = subtotal * (porcentajeDescuento / 100);
@@ -1713,13 +1780,34 @@
       const totalFinal = totalRecurrente + totalPagoUnico;
 
       document.getElementById('totalSucursales').textContent = totalSucursales;
-      document.getElementById('precioBase').textContent = `$${precioBase.toLocaleString()}`;
-      document.getElementById('precioCaracteristicas').textContent = `$${precioCaracteristicas.toLocaleString()}`;
+      document.getElementById('precioBase').textContent = `$${precioBaseConPonderador.toLocaleString()}`;
+      document.getElementById('precioCaracteristicas').textContent = `$${precioCaracteristicasConPonderador.toLocaleString()}`;
+      document.getElementById('valorReferenciaPais').textContent = `$${valorReferenciaPais.toLocaleString()}`;
       document.getElementById('precioJB').textContent = `$${precioJB.toLocaleString()}`;
       document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
       document.getElementById('totalRecurrente').textContent = `$${totalRecurrente.toLocaleString()}`;
       document.getElementById('totalPagoUnico').textContent = `$${totalPagoUnico.toLocaleString()}`;
       document.getElementById('totalFinal').textContent = `$${totalFinal.toLocaleString()}`;
+      
+      // Mostrar información del país y ponderador
+      const paisDisplay = document.getElementById('paisDisplay');
+      if (paisDisplay) {
+        const nombresPais = {
+          'argentina': 'Argentina',
+          'bolivia': 'Bolivia',
+          'paraguay': 'Paraguay',
+          'espana': 'España',
+          'uruguay': 'Uruguay',
+          'chile': 'Chile',
+          'Colombia': 'Colombia',
+          'peru': 'Perú',
+          'mexico': 'México',
+          'centroamerica': 'Centroamérica',
+          'otro': 'Otro'
+        };
+        const nombrePais = nombresPais[paisSeleccionado] || 'Otro';
+        paisDisplay.textContent = `${nombrePais} (Ponderador: ${ponderador}x)`;
+      }
       
       // Actualizar detalle de Compañía
       actualizarDetalleCompania(totalSucursalesSinIndividual, precioTenant);
@@ -1835,6 +1923,12 @@
       });
 
       document.getElementById('descuento').addEventListener('input', calcularTotal);
+
+      // Event listener para el selector de país
+      const paisSelect = document.getElementById('pais');
+      if (paisSelect) {
+        paisSelect.addEventListener('change', calcularTotal);
+      }
 
       document.getElementById('btnGenerarPDF').addEventListener('click', generarPDF);
       
