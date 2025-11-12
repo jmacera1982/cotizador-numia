@@ -84,6 +84,7 @@
             <option value="espana">España</option>
             <option value="uruguay">Uruguay</option>
             <option value="chile">Chile</option>
+            <option value="colombia">Colombia</option>
             <option value="peru">Perú</option>
             <option value="mexico">México</option>
             <option value="centroamerica">Centroamérica</option>
@@ -682,7 +683,11 @@
                 <span id="precioCaracteristicas" class="font-semibold">$0</span>
               </div>
               <div class="flex justify-between items-center border-t pt-3 mt-3">
-                <span class="text-slate-600 font-medium">Valor de referencia para el país:</span>
+                <span class="text-slate-600 font-medium">Valor para sucursales:</span>
+                <span id="valorReferenciaSucursales" class="font-semibold text-green-600">$0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">Valor referencia de Sucursales para el país:</span>
                 <span id="valorReferenciaPais" class="font-semibold text-blue-600">$0</span>
               </div>
               <div class="flex justify-between items-center">
@@ -905,7 +910,7 @@
       'espana': 1,
       'uruguay': 1,
       'chile': 0.6,
-      'Colombia': 0.8,
+      'colombia': 0.8,
       'peru': 0.6,
       'mexico': 1.2,
       'centroamerica': 1.2,
@@ -1449,17 +1454,17 @@
         return;
       }
       
-      // Obtener ponderador del país
+      // Obtener ponderador del país (solo para mostrar información)
       const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
       const ponderador = ponderadoresPais[paisSeleccionado] || 1;
       
-      // Mostrar cada tipo de sucursal
+      // Mostrar cada tipo de sucursal (sin aplicar ponderador al total)
       sucursalesSeleccionadas.forEach((data, planId) => {
         const plan = planes.find(p => p.id === planId);
         const cantidad = data.cantidad;
         const caracteristicasSucursal = data.caracteristicas || new Set();
         const precioConDescuento = plan.precio * (1 - (plan.descuento || 0) / 100);
-        const totalPlan = precioConDescuento * cantidad * ponderador;
+        const totalPlan = precioConDescuento * cantidad;
         
         html += `
           <div class="bg-gradient-to-r ${plan.color} rounded-xl p-6 text-white">
@@ -1525,27 +1530,27 @@
                         descripcionCalculo = `(${cantidadCaracteristica} pantallas)`;
                       }
                       
-                      totalCaracteristica = caracteristica.precio * cantidadACobrar * cantidad * ponderador;
+                      totalCaracteristica = caracteristica.precio * cantidadACobrar * cantidad;
                     } else if (caracteristica.esPaquete) {
                       // Para paquetes: precio × cantidad_paquetes × cantidad_sucursales
                       if (caracteristica.dependeDeVideollamada) {
                         // Para paquetes que dependen de videollamada: calcular basado en horas de videollamada
                         const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
-                        totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad * ponderador;
+                        totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
                         descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
                       } else {
                         // Para paquetes normales: precio × cantidad_paquetes × cantidad_sucursales
-                        totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad * ponderador;
+                        totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
                         descripcionCalculo = `(${cantidadCaracteristica} paquetes)`;
                       }
                     } else if (caracteristica.id === 'cabina-virtual') {
                       // Cabina virtual: precio fijo por sucursal
-                      totalCaracteristica = caracteristica.precio * cantidad * ponderador;
+                      totalCaracteristica = caracteristica.precio * cantidad;
                       descripcionCalculo = '';
                     } else if (caracteristica.dependeDeVideollamada) {
                       // Para características que dependen de videollamada: calcular basado en horas de videollamada
                       const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
-                      totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad * ponderador;
+                      totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
                       descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
                     } else if (caracteristica.esVoz) {
                       // Para características de voz: calcular según tipo y horas
@@ -1553,15 +1558,15 @@
                       const horasVoz = caracteristicasSucursal.get('voz-horas') || 1;
                       
                       if (tipoVoz === 'entrante') {
-                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios * cantidad * ponderador;
+                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios * cantidad;
                         descripcionCalculo = `(${horasVoz} horas entrantes × ${plan.usuarios} usuarios)`;
                       } else if (tipoVoz === 'saliente') {
-                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios * cantidad * ponderador;
+                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios * cantidad;
                         descripcionCalculo = `(${horasVoz} horas salientes × ${plan.usuarios} usuarios)`;
                       }
                     } else {
                       // Para características normales: precio × usuarios × cantidad_sucursales
-                      totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad * ponderador;
+                      totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad;
                       descripcionCalculo = `(${plan.usuarios} usuarios)`;
                     }
                     
@@ -1749,16 +1754,18 @@
         precioTenant += 10 * cantidadEncuestas;
       }
 
-      // Aplicar ponderador del país solo a las sucursales (precioBase + precioCaracteristicas)
+      // Calcular valores de referencia
       const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
       const ponderador = ponderadoresPais[paisSeleccionado] || 1;
-      const precioBaseConPonderador = precioBase * ponderador;
-      const precioCaracteristicasConPonderador = precioCaracteristicas * ponderador;
       
-      // Calcular valor de referencia para el país (valor de sucursales * ponderador)
-      const valorReferenciaPais = (precioBase + precioCaracteristicas) * ponderador;
+      // Valor de referencia para sucursales (sin ponderador)
+      const valorReferenciaSucursales = precioBase + precioCaracteristicas;
+      
+      // Valor de referencia para el país (con ponderador)
+      const valorReferenciaPais = valorReferenciaSucursales * ponderador;
 
-      const subtotal = precioBaseConPonderador + precioCaracteristicasConPonderador + precioJB + precioTenant;
+      // El subtotal NO incluye el ponderador
+      const subtotal = precioBase + precioCaracteristicas + precioJB + precioTenant;
       const descuentoHabilitado = document.getElementById('chkDescuento').checked;
       const porcentajeDescuento = descuentoHabilitado ? parseInt(document.getElementById('descuento').value) || 0 : 0;
       const descuento = subtotal * (porcentajeDescuento / 100);
@@ -1780,8 +1787,9 @@
       const totalFinal = totalRecurrente + totalPagoUnico;
 
       document.getElementById('totalSucursales').textContent = totalSucursales;
-      document.getElementById('precioBase').textContent = `$${precioBaseConPonderador.toLocaleString()}`;
-      document.getElementById('precioCaracteristicas').textContent = `$${precioCaracteristicasConPonderador.toLocaleString()}`;
+      document.getElementById('precioBase').textContent = `$${precioBase.toLocaleString()}`;
+      document.getElementById('precioCaracteristicas').textContent = `$${precioCaracteristicas.toLocaleString()}`;
+      document.getElementById('valorReferenciaSucursales').textContent = `$${valorReferenciaSucursales.toLocaleString()}`;
       document.getElementById('valorReferenciaPais').textContent = `$${valorReferenciaPais.toLocaleString()}`;
       document.getElementById('precioJB').textContent = `$${precioJB.toLocaleString()}`;
       document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
@@ -1799,7 +1807,7 @@
           'espana': 'España',
           'uruguay': 'Uruguay',
           'chile': 'Chile',
-          'Colombia': 'Colombia',
+          'colombia': 'Colombia',
           'peru': 'Perú',
           'mexico': 'México',
           'centroamerica': 'Centroamérica',
