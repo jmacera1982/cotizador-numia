@@ -3,16 +3,47 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JB Chatbot - Cotizador</title>
+  <title>Cotizador Numia V2 - Planes de Sucursales</title>
   <!-- Google Fonts - Hanken Grotesk -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jsPDF + autotable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
     * {
       font-family: 'Hanken Grotesk', sans-serif;
+    }
+    
+    .plan-card {
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .plan-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .plan-card.selected {
+      border-color: #3b82f6;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    
+    .feature-toggle {
+      transition: all 0.2s ease;
+    }
+    
+    .feature-toggle:checked {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+    }
+    
+    .feature-toggle:checked:hover {
+      background-color: #2563eb;
     }
     
     .price-display {
@@ -36,20 +67,37 @@
   <header class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="text-3xl">🤖</div>
+        <img src="images/numia.png" alt="Logo Numia" class="h-12 w-auto" />
         <div>
-          <h1 class="text-2xl font-bold tracking-tight">JB Chatbot - Cotizador</h1>
-          <p class="text-sm text-slate-600">Solución de chatbot inteligente</p>
+          <h1 class="text-2xl font-bold tracking-tight">Cotizador Numia V2</h1>
+          <p class="text-sm text-slate-600">Cotiza los planes de sucursales y características de Numia App</p>
         </div>
       </div>
       <div class="flex items-center gap-4">
+        <label class="text-sm flex items-center gap-2">
+          País
+          <select id="pais" 
+                  class="px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <option value="argentina">Argentina</option>
+            <option value="bolivia">Bolivia</option>
+            <option value="paraguay">Paraguay</option>
+            <option value="espana">España</option>
+            <option value="uruguay">Uruguay</option>
+            <option value="chile">Chile</option>
+            <option value="colombia">Colombia</option>
+            <option value="peru">Perú</option>
+            <option value="mexico">México</option>
+            <option value="centroamerica">Centroamérica</option>
+            <option value="otro">Otro</option>
+          </select>
+        </label>
         <label class="text-sm flex items-center gap-2">
           Cliente
           <input id="cliente" type="text" placeholder="Nombre de cliente" 
                  class="px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </label>
         <button id="btnGenerarPDF" 
-                class="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg transition-all duration-200">
+                class="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg transition-all duration-200">
           Generar PDF
         </button>
       </div>
@@ -57,10 +105,181 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Configuración de JB Chatbot -->
+    <!-- Selector de Planes -->
     <section class="mb-8">
+      <!--h2 class="text-3xl font-bold text-center mb-2">Selecciona tu Plan</h2>
+      <p class="text-center text-slate-600 mb-8">Elige el plan que mejor se adapte a las necesidades de tu sucursal</p-->
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6" id="planesContainer" style="display: none;">
+        <!-- Los planes se generarán dinámicamente -->
+      </div>
+    </section>
+
+    <!-- Configuración de Tenant y Sucursales -->
+    <section class="mb-8" id="caracteristicasSection" style="display: block;">
       <div class="bg-white rounded-2xl shadow-xl p-8">
-        <h3 class="text-2xl font-bold mb-6">Configuración de JB Chatbot</h3>
+        <h3 class="text-2xl font-bold mb-6">Configura la compañia del cliente y sus sucursales</h3>
+        
+        <!-- Configuración de Tenant -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 mb-8 border border-green-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="text-3xl">🏢</div>
+            <div>
+              <h4 class="text-lg font-semibold text-slate-800">compañia</h4>
+              <p class="text-slate-600 text-sm">Configuración global para toda tu organización (los costos son mensuales)</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="tenantAddons">
+            
+            
+            <!-- Sandbox -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🧪</span>
+                  <span class="text-sm font-medium">Sandbox</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$10</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-3">Ambiente de pruebas</p>
+              <div class="flex items-center gap-2">
+                <button class="btnMenosSandbox w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors">
+                  <span class="text-slate-600 text-xs font-bold">-</span>
+                </button>
+                <input type="number" min="0" max="10" value="0" 
+                       class="w-12 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 cantidad-sandbox" />
+                <button class="btnMasSandbox w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors">
+                  <span class="text-slate-600 text-xs font-bold">+</span>
+                </button>
+              </div>
+            </div>
+            
+            
+            <!-- SMS -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">📱</span>
+                  <span class="text-sm font-medium">SMS</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$10</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-2">Integración con carrier SMS, cotizar si el cliente requiere enviar sms desde Numia App</p>
+              <p class="text-xs text-orange-600 mb-3">⚠️ Solo integración, no incluye costos de envíos</p>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                       data-addon="sms">
+                <span class="text-sm text-slate-700">Incluir</span>
+              </div>
+            </div>
+            
+            <!-- WhatsApp -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">💬</span>
+                  <span class="text-sm font-medium">WhatsApp</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$10</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-2">Integración con Meta WhatsApp, incluir si el cliente requiere enviar notificaciones de Whatsapp desde Numia App.</p>
+              <p class="text-xs text-orange-600 mb-3">⚠️ Solo integración, no incluye cuentas ni costos de envíos</p>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                       data-addon="whatsapp">
+                <span class="text-sm text-slate-700">Incluir</span>
+              </div>
+            </div>
+            <!-- Citas -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">📅</span>
+                  <span class="text-sm font-medium">Citas</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$50</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-2">Sistema de gestión de citas</p>
+              <p class="text-xs text-orange-600 mb-3">⚠️ Debe incluir la cantidad de sucursales para que este componente impacte en el precio</p>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                       data-addon="citas">
+                <span class="text-sm text-slate-700">Incluir</span>
+              </div>
+            </div>
+            
+            <!-- Fila Virtual -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🎯</span>
+                  <span class="text-sm font-medium">Fila Virtual</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$50</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-2">Sistema de fila virtual</p>
+              <p class="text-xs text-orange-600 mb-3">⚠️ Debe incluir la cantidad de sucursales para que este componente impacte en el precio</p>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                       data-addon="fila-virtual">
+                <span class="text-sm text-slate-700">Incluir</span>
+              </div>
+            </div>
+            
+            
+            <!-- Encuestas -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">📊</span>
+                  <span class="text-sm font-medium">Encuestas</span>
+                </div>
+                <div class="text-sm font-bold text-green-600">$10</div>
+              </div>
+              <p class="text-xs text-slate-600 mb-2">Sistema de encuestas y feedback</p>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                       data-addon="encuestas">
+                <span class="text-sm text-slate-700">Incluir</span>
+              </div>
+            </div>
+          <!-- SSO -->
+          <div class="bg-white rounded-lg p-4 border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">🔐</span>
+                <span class="text-sm font-medium">SSO</span>
+              </div>
+              <div class="text-sm font-bold text-green-600">$100</div>
+            </div>
+            <p class="text-xs text-slate-600 mb-2">Single Sign-On para autenticación centralizada</p>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                     data-addon="sso">
+              <span class="text-sm text-slate-700">Incluir</span>
+            </div>
+          </div>
+          
+          </div>
+        </div>
+        
+        <!-- Selector de Tipos de Sucursales -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-8 border border-blue-200">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h4 class="text-lg font-semibold text-slate-800 mb-2">Tipos de Sucursales</h4>
+              <p class="text-slate-600 text-sm">Agrega diferentes tipos de sucursales a tu cotización</p>
+            </div>
+            <button id="btnAgregarSucursal" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              + Agregar Sucursal
+            </button>
+          </div>
+          
+          <div id="sucursalesContainer" class="space-y-4">
+            <!-- Las sucursales se generarán dinámicamente -->
+          </div>
+        </div>
         
         <!-- Configuración de JB Chatbot -->
         <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-8 border border-purple-200">
@@ -237,7 +456,7 @@
             <div class="flex items-start gap-2">
               <span class="text-yellow-600 text-sm">⚠️</span>
               <div class="text-sm text-yellow-800">
-                <strong>Integraciones en JB:</strong>Para cada integración en JB se deben considerar 50 horas de desarrolllo.
+                <strong>Integraciones en JB:</strong> Para cada integración en JB se deben considerar 50 horas de desarrolllo.
                 
               </div>
             </div>
@@ -323,6 +542,110 @@
             </div>
           </div>
         </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="caracteristicasContainer">
+          <!-- Las características se generarán dinámicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de Pago Único -->
+    <section class="mb-8" id="pagoUnicoSection" style="display: block;">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-2xl font-bold mb-6">Implementación (pago único)</h3>
+        
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6 border border-indigo-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="text-3xl">💼</div>
+            <div>
+              <h4 class="text-lg font-semibold text-slate-800">Servicios Profesionales</h4>
+              <p class="text-slate-600 text-sm">Configuración de horas de servicios adicionales</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Horas Parametrización Numia App -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Cant. Horas Parametrización Numia App</label>
+              <input type="number" id="horasNumiaApp" min="0" value="0" 
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                     placeholder="0" />
+            </div>
+            
+            <!-- Horas Parametrización JB -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Cant. Horas Parametrización JB</label>
+              <input type="number" id="horasJB" min="0" value="0" 
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                     placeholder="0" />
+            </div>
+            
+            <!-- Horas Integración -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Cant. Horas Integración</label>
+              <input type="number" id="horasIntegracion" min="0" value="0" 
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                     placeholder="0" />
+            </div>
+            
+            <!-- Valor de la Hora -->
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Valor de la Hora</label>
+              <input type="number" id="valorHora" min="0" value="50" 
+                     class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                     placeholder="50" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de Precios Tentativos Hardware -->
+    <section class="mb-8" id="hardwareSection" style="display: block;">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-2xl font-bold mb-6">Precios Tentativos Hardware</h3>
+        
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 mb-6 border border-amber-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="text-3xl">🖥️</div>
+            <div>
+              <h4 class="text-lg font-semibold text-slate-800">Valores recomendados</h4>
+              <p class="text-slate-600 text-sm">Valores de referencia para hardware</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Kioscos con Impresora -->
+            <div class="bg-white rounded-lg p-6 border border-slate-200">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">🖨️</span>
+                  <h5 class="text-lg font-semibold text-slate-800">Kioscos con Impresora</h5>
+                </div>
+              </div>
+              <p class="text-sm text-slate-600 mb-4">Solución completa con impresora integrada para tickets y documentos</p>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-600">Valor deseable:</span>
+                <span class="text-2xl font-bold text-orange-600">$2,500</span>
+              </div>
+            </div>
+            
+            <!-- Opción Low Cost -->
+            <div class="bg-white rounded-lg p-6 border border-slate-200">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">📱</span>
+                  <h5 class="text-lg font-semibold text-slate-800">Opción Low Cost</h5>
+                </div>
+              </div>
+              <p class="text-sm text-slate-600 mb-4">Tablet o All in one - Solución económica para implementación</p>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-600">Valor deseable:</span>
+                <span class="text-2xl font-bold text-orange-600">$1,000</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -332,7 +655,7 @@
         <div class="bg-white rounded-2xl shadow-xl p-8">
           <h3 class="text-2xl font-bold mb-6">Resumen de Configuración</h3>
           <div id="resumenConfiguracion">
-            <p class="text-slate-600">Selecciona un plan JB para ver el resumen</p>
+            <p class="text-slate-600">Selecciona un plan para ver el resumen</p>
           </div>
         </div>
       </div>
@@ -344,13 +667,63 @@
             
             <div class="space-y-4 mb-6">
               <div class="flex justify-between items-center">
+                <span class="text-slate-600">Total Sucursales:</span>
+                <span id="totalSucursales" class="font-semibold">0</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-slate-500">País:</span>
+                <span id="paisDisplay" class="font-medium text-blue-600">Argentina (Ponderador: 1x)</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Plan Base:</span>
+                <span id="precioBase" class="font-semibold">$0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Características:</span>
+                <span id="precioCaracteristicas" class="font-semibold">$0</span>
+              </div>
+              <div class="flex justify-between items-center border-t pt-3 mt-3">
+                <span class="text-slate-600 font-medium">Valor para sucursales:</span>
+                <span id="valorReferenciaSucursales" class="font-semibold text-green-600">$0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">Valor referencia de Sucursales para el país:</span>
+                <span id="valorReferenciaPais" class="font-semibold text-blue-600">$0</span>
+              </div>
+              <div class="flex justify-between items-center">
                 <span class="text-slate-600">JB Chatbot:</span>
                 <span id="precioJB" class="font-semibold">$0</span>
               </div>
+              <div id="detalleCompaniaContainer">
+                <!-- El detalle se generará dinámicamente -->
+              </div>
               <div class="border-t pt-4">
-                <div class="flex justify-between items-center text-2xl font-bold">
-                  <span>Total:</span>
-                  <span id="total" class="price-display">$0</span>
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-slate-600">Subtotal:</span>
+                  <span id="subtotal" class="font-semibold">$0</span>
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                  <label class="flex items-center gap-2 text-sm">
+                    <input id="chkDescuento" type="checkbox" class="rounded">
+                    Aplicar descuento (%):
+                  </label>
+                  <input id="descuento" type="number" min="0" max="100" value="0" 
+                         class="w-20 px-2 py-1 rounded border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                         placeholder="%" disabled />
+                </div>
+                <div class="flex justify-between items-center mb-2 text-lg font-bold">
+                  <span>Total Recurrente(MRR):</span>
+                  <span id="totalRecurrente" class="price-display">$0</span>
+                </div>
+                <div class="border-t pt-3 mt-3">
+                  <div class="flex justify-between items-center mb-2 text-lg font-bold">
+                    <span>Servicios profesionales: </span>
+                    <span id="totalPagoUnico" class="price-display">$0</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center text-2xl font-bold border-t pt-3 mt-3">
+                  <span>Total Final:</span>
+                  <span id="totalFinal" class="price-display">$0</span>
                 </div>
               </div>
             </div>
@@ -361,6 +734,165 @@
   </main>
 
   <script>
+    // Configuración de planes
+    const planes = [
+      {
+        id: 'individual',
+        nombre: 'Usuario Individual',
+        descripcion: 'Perfecto para profesionales independientes',
+        usuarios: 1,
+        precio: 0,
+        descuento:0,
+        color: 'from-green-500 to-emerald-600',
+        icono: '👤'
+      },
+      {
+        id: 'sucursal-5',
+        nombre: 'Sucursal Pequeña',
+        descripcion: 'Hasta 5 personas',
+        usuarios: 5,
+        precio: 0,
+        descuento:10,
+        color: 'from-blue-500 to-cyan-600',
+        icono: '🏢'
+      },
+      {
+        id: 'sucursal-10',
+        nombre: 'Sucursal Mediana',
+        descripcion: 'Hasta 10 personas',
+        usuarios: 10,
+        precio: 0,
+        descuento:15,
+        color: 'from-purple-500 to-pink-600',
+        icono: '🏬'
+      },
+      {
+        id: 'sucursal-30',
+        nombre: 'Sucursal Grande',
+        descripcion: 'Hasta 30 personas',
+        usuarios: 30,
+        precio: 0,
+        descuento:30,
+        color: 'from-orange-500 to-red-600',
+        icono: '🏭'
+      },
+      {
+        id: 'empresarial',
+        nombre: 'Plan Empresarial',
+        descripcion: 'Más de 30 personas',
+        usuarios: 50,
+        precio: 7999,
+        color: 'from-indigo-500 to-purple-700',
+        icono: '🌟'
+      }
+    ];
+
+    // Configuración de características
+    const caracteristicas = [
+      {
+        id: 'atencion-presencial',
+        nombre: 'Atención Presencial',
+        descripcion: 'Soporte y atención cara a cara',
+        precio: 20,
+        icono: '🤝'
+      },
+      {
+        id: 'videollamada',
+        nombre: 'Videollamadas',
+        descripcion: 'Comunicación por video HD, incluye 40 hs de grabación por usaurio',
+        precio: 38,
+        icono: '📹'
+      },
+      {
+        id: 'livechat',
+        nombre: 'Live Chat',
+        descripcion: 'Chat en tiempo real',
+        precio: 15,
+        icono: '💬'
+      },
+      {
+        id: 'cobrowse',
+        nombre: 'Co-browse',
+        descripcion: 'Navegación colaborativa, se calcula en función de las horas de videollamada por usuario',
+        precio: 1.6,
+        icono: '🌐',
+        dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
+      },
+      {
+        id: 'analisis-sentimiento',
+        nombre: 'Análisis de Sentimiento',
+        descripcion: 'Análisis de sentimientos se calcula de forma automática contemplando las horas de videollamada por usuario',
+        precio: 1.25,
+        icono: '😊',
+        dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
+      },
+      {
+        id: 'pantallas',
+        nombre: 'Pantallas Digitales',
+        descripcion: 'Pantallas para información y comunicación',
+        precio: 25,
+        icono: '📺',
+        esCantidad: true, // Indica que esta característica requiere cantidad
+        cantidadMinimaGratuita: true // Indica que tiene cantidad mínima sin costo
+      },
+      {
+        id: 'voz',
+        nombre: 'Voz',
+        descripcion: 'Servicio de voz con opción entrante o saliente',
+        precio: 0.6, // Precio por hora
+        icono: '📞',
+        esVoz: true // Indica que esta característica es de voz y requiere configuración especial
+      },
+      {
+        id: 'copilot',
+        nombre: 'Copilot',
+        descripcion: 'Asistente IA avanzado',
+        precio: 30,
+        icono: '🤖'
+      },
+      {
+        id: 'paquete-videollamada',
+        nombre: 'Paquete 8 hs de Videollamada adicional y grabaciones',
+        descripcion: 'Paquete adicional de 8 horas de videollamada y grabaciones',
+        precio: 15,
+        icono: '📹',
+        esPaquete: true // Indica que es un addon de paquete numérico
+      },
+      {
+        id: 'paquete-grabaciones',
+        nombre: 'Paquete 8 hs de grabaciones adicionales',
+        descripcion: 'Paquete adicional de 8 horas de grabaciones',
+        precio: 15,
+        icono: '🎥',
+        esPaquete: true // Indica que es un addon de paquete numérico
+      },
+      {
+        id: 'transcripcion',
+        nombre: 'Transcripción',
+        descripcion: 'Las horas de transcripción se calculan de forma automática contemplando las horas de videollamada por usuario',
+        precio: 0.5,
+        icono: '📝',
+        dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
+      },
+      {
+        id: 'cabina-virtual',
+        nombre: 'Cabina Virtual',
+        descripcion: 'Cabina virtual para videollamadas',
+        precio: 50,
+        icono: '🏢',
+        esCantidad: true, // Indica que esta característica requiere cantidad
+               dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
+      }
+    ];
+
+    // Configuración de cantidades mínimas de cartelería digital sin costo por tipo de sucursal
+    const cantidadMinimaCarteleria = {
+      'sucursal-5': 2,    // Sucursal Pequeña: 2 pantallas sin costo
+      'sucursal-10': 3,   // Sucursal Mediana: 3 pantallas sin costo
+      'sucursal-30': 4,   // Sucursal Grande: 4 pantallas sin costo
+      'empresarial': 4    // Plan Empresarial: 4 pantallas sin costo
+    };
+
     // Configuración de costos unitarios para JB Chatbot
     const costosUnitarios = {
       valorLiveChat: 30,
@@ -370,23 +902,1163 @@
       valorOCR: 0.0080 // $0.0080 por OCR
     };
 
+    // Ponderadores por país
+    const ponderadoresPais = {
+      'argentina': 1,
+      'bolivia': 1,
+      'paraguay': 1,
+      'espana': 1,
+      'uruguay': 1,
+      'chile': 0.6,
+      'colombia': 0.8,
+      'peru': 0.6,
+      'mexico': 1.2,
+      'centroamerica': 1.2,
+      'otro': 1
+    };
+
     // Variables globales
+    let planSeleccionado = null;
+    let sucursalesSeleccionadas = new Map(); // Map: planId -> { cantidad: number, caracteristicas: Map(caracteristicaId -> cantidad) }
+    let tenantAddons = new Map(); // Map: addonId -> cantidad (para sandbox) o true/false (para otros)
+    let cantidadSandbox = 0;
     let jbPlanSeleccionado = null; // Plan de JB seleccionado
 
     // Inicializar la aplicación
     function init() {
+      renderPlanes();
+      initTenantAddons();
       setupEventListeners();
+      calcularTotal(); // Inicializar los valores del total
+    }
+
+    // Inicializar addons del tenant
+    function initTenantAddons() {
+      // Inicializar con valores por defecto (todos desmarcados)
+      tenantAddons.set('sms', false);
+      tenantAddons.set('whatsapp', false);
+      tenantAddons.set('sandbox', 0);
+      tenantAddons.set('citas', false);
+      tenantAddons.set('fila-virtual', false);
+      tenantAddons.set('sso', false);
+      tenantAddons.set('encuestas', false);
+    }
+
+    // Renderizar planes
+    function renderPlanes() {
+      const container = document.getElementById('planesContainer');
+      container.innerHTML = '';
+
+      planes.forEach(plan => {
+        const planElement = document.createElement('div');
+        planElement.className = `plan-card bg-white rounded-2xl shadow-lg p-6 cursor-pointer transition-all duration-300 hover:shadow-xl`;
+        planElement.innerHTML = `
+          <div class="text-center">
+            <div class="text-4xl mb-4">${plan.icono}</div>
+            <h3 class="text-xl font-bold mb-2">${plan.nombre}</h3>
+            <p class="text-slate-600 text-sm mb-4">${plan.descripcion}</p>
+            <div class="text-2xl font-bold text-slate-800 mb-2">$${plan.precio.toLocaleString()}</div>
+            <div class="text-sm text-slate-500">${plan.usuarios} usuario${plan.usuarios > 1 ? 's' : ''}</div>
+          </div>
+        `;
+        
+        planElement.addEventListener('click', () => seleccionarPlan(plan));
+        container.appendChild(planElement);
+      });
+    }
+
+    // Seleccionar plan
+    function seleccionarPlan(plan) {
+      planSeleccionado = plan;
+      
+      // Actualizar UI
+      document.querySelectorAll('.plan-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      event.currentTarget.classList.add('selected');
+      
+      // Mostrar sección de características
+      document.getElementById('caracteristicasSection').style.display = 'block';
+      renderSucursales();
+      actualizarResumen();
+      calcularTotal();
+    }
+
+    // Renderizar sucursales
+    function renderSucursales() {
+      const container = document.getElementById('sucursalesContainer');
+      
+      if (sucursalesSeleccionadas.size === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-center py-4">No hay sucursales agregadas. Haz clic en "Agregar Sucursal" para comenzar.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        const plan = planes.find(p => p.id === planId);
+        const cantidad = data.cantidad;
+        const caracteristicasSucursal = data.caracteristicas || new Set();
+        
+        const sucursalElement = document.createElement('div');
+        sucursalElement.className = 'bg-white rounded-xl p-6 border border-slate-200 mb-4';
+        sucursalElement.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-4">
+              <div class="text-3xl">${plan.icono}</div>
+              <div>
+                <h5 class="text-lg font-semibold">${plan.nombre}</h5>
+                <p class="text-sm text-slate-600">${plan.descripcion}</p>
+                <p class="text-sm text-blue-600 font-medium">$${plan.precio.toLocaleString()} por sucursal</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2">
+                <button class="btnMenosSucursal w-8 h-8 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center hover:bg-slate-200 transition-colors" data-plan="${planId}">
+                  <span class="text-slate-600 font-bold">-</span>
+                </button>
+                <input type="number" min="1" max="100" value="${cantidad}" 
+                       class="w-16 text-center border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 cantidad-sucursal" 
+                       data-plan="${planId}" />
+                <button class="btnMasSucursal w-8 h-8 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center hover:bg-slate-200 transition-colors" data-plan="${planId}">
+                  <span class="text-slate-600 font-bold">+</span>
+                </button>
+              </div>
+              <button class="btnEliminarSucursal px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors" data-plan="${planId}">
+                Eliminar
+              </button>
+            </div>
+          </div>
+          
+          <!-- Características específicas para este tipo de sucursal -->
+          <div class="border-t pt-4">
+            <h6 class="text-sm font-semibold text-slate-700 mb-3">Características para ${plan.nombre}:</h6>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="caracteristicas-${planId}">
+              ${caracteristicas.map(caracteristica => {
+                const cantidadCaracteristica = caracteristicasSucursal.get(caracteristica.id) || 0;
+                const estaSeleccionada = cantidadCaracteristica > 0;
+                
+                // Ocultar el paquete de grabaciones
+                if (caracteristica.id === 'paquete-grabaciones') {
+                  return '';
+                }
+                
+                // Ocultar el addon de voz
+                if (caracteristica.id === 'voz') {
+                  return '';
+                }
+                
+                // Verificar si esta característica depende de videollamada
+                const dependeDeVideollamada = ['cobrowse', 'analisis-sentimiento', 'cabina-virtual'].includes(caracteristica.id);
+                const videollamadaSeleccionada = caracteristicasSucursal.get('videollamada') > 0;
+                
+                // Si depende de videollamada y no está seleccionada, no mostrar
+                if (dependeDeVideollamada && !videollamadaSeleccionada) {
+                  return '';
+                }
+                
+                return `
+                  <div class="bg-slate-50 rounded-lg p-3 border-2 ${estaSeleccionada ? 'border-blue-300 bg-blue-50' : 'border-transparent'} ${dependeDeVideollamada ? 'opacity-75' : ''}">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center gap-2">
+                        <span class="text-lg">${caracteristica.icono}</span>
+                        <span class="text-sm font-medium">${caracteristica.nombre}</span>
+                        ${dependeDeVideollamada ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Requiere Videollamadas</span>' : ''}
+                      </div>
+                      <div class="text-sm font-bold text-blue-600">$${caracteristica.precio.toLocaleString()}</div>
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3">${caracteristica.descripcion}</p>
+                    
+                    ${caracteristica.esCantidad ? `
+                      <div class="space-y-2">
+                        ${caracteristica.cantidadMinimaGratuita ? `
+                          <div class="bg-green-50 border border-green-200 rounded-lg p-2 mb-2">
+                            <div class="flex items-center gap-2">
+                              <span class="text-green-600 text-sm">✓</span>
+                              <span class="text-xs text-green-700 font-medium">
+                                Incluye ${cantidadMinimaCarteleria[planId] || 0} pantallas sin costo
+                              </span>
+                            </div>
+                          </div>
+                        ` : ''}
+                        <div class="flex items-center gap-2">
+                          <button class="btnMenosCaracteristica w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                  data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${!estaSeleccionada ? 'disabled' : ''}>
+                            <span class="text-slate-600 text-xs font-bold">-</span>
+                          </button>
+                          <input type="number" min="0" max="20" value="${cantidadCaracteristica}" 
+                                 class="w-12 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 cantidad-caracteristica" 
+                                 data-plan="${planId}" data-caracteristica="${caracteristica.id}" />
+                          <button class="btnMasCaracteristica w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                  data-plan="${planId}" data-caracteristica="${caracteristica.id}">
+                            <span class="text-slate-600 text-xs font-bold">+</span>
+                          </button>
+                          <span class="text-xs text-slate-500 ml-2">cantidad</span>
+                        </div>
+                        ${caracteristica.cantidadMinimaGratuita ? `
+                          <div class="text-xs text-slate-500">
+                            Total: ${cantidadCaracteristica} pantallas 
+                            ${cantidadCaracteristica > (cantidadMinimaCarteleria[planId] || 0) ? 
+                              `(${(cantidadMinimaCarteleria[planId] || 0)} incluidas + ${cantidadCaracteristica - (cantidadMinimaCarteleria[planId] || 0)} adicionales)` : 
+                              `(${cantidadCaracteristica} incluidas)`
+                            }
+                          </div>
+                        ` : ''}
+                      </div>
+                    ` : caracteristica.esPaquete ? `
+                      <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                          <button class="btnMenosPaquete w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                  data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${!estaSeleccionada ? 'disabled' : ''}>
+                            <span class="text-slate-600 text-xs font-bold">-</span>
+                          </button>
+                          <input type="number" min="0" max="100" value="${cantidadCaracteristica}" 
+                                 class="w-16 text-center text-sm border border-slate-300 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 cantidad-paquete" 
+                                 data-plan="${planId}" data-caracteristica="${caracteristica.id}" />
+                          <button class="btnMasPaquete w-6 h-6 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+                                  data-plan="${planId}" data-caracteristica="${caracteristica.id}">
+                            <span class="text-slate-600 text-xs font-bold">+</span>
+                          </button>
+                          <span class="text-xs text-slate-500 ml-2">paquetes</span>
+                        </div>
+                        <div class="text-xs text-slate-500">
+                          Total: ${cantidadCaracteristica} paquetes × $${caracteristica.precio} = $${cantidadCaracteristica * caracteristica.precio}
+                        </div>
+                      </div>
+                    ` : caracteristica.esVoz ? `
+                      <div class="space-y-3">
+                        <div class="flex items-center gap-2">
+                          <input type="checkbox" class="caracteristica-sucursal w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
+                                 data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${estaSeleccionada ? 'checked' : ''}>
+                          <span class="text-sm text-slate-700">Incluir</span>
+                        </div>
+                        ${estaSeleccionada ? `
+                          <div class="space-y-2">
+                            <div>
+                              <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de llamada:</label>
+                              <select class="tipo-voz w-full text-sm border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                      data-plan="${planId}" data-caracteristica="${caracteristica.id}">
+                                <option value="entrante" ${caracteristicasSucursal.get('voz-tipo') === 'entrante' ? 'selected' : ''}>Entrante ($0.6/hora)</option>
+                                <option value="saliente" ${caracteristicasSucursal.get('voz-tipo') === 'saliente' ? 'selected' : ''}>Saliente (Precio especial)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-600 mb-1">Total de horas:</label>
+                              <input type="number" min="1" max="1000" value="${caracteristicasSucursal.get('voz-horas') || 1}" 
+                                     class="horas-voz w-full text-sm border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                     data-plan="${planId}" data-caracteristica="${caracteristica.id}" />
+                            </div>
+                          </div>
+                        ` : ''}
+                      </div>
+                    ` : `
+                      <div class="flex items-center gap-2">
+                        <input type="checkbox" class="caracteristica-sucursal w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
+                               data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${estaSeleccionada ? 'checked' : ''}>
+                        <span class="text-sm text-slate-700">Incluir</span>
+                      </div>
+                    `}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(sucursalElement);
+      });
+      
+      // Agregar event listeners
+      container.querySelectorAll('.btnMenosSucursal').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const input = container.querySelector(`input[data-plan="${planId}"]`);
+          const currentValue = parseInt(input.value);
+          if (currentValue > 1) {
+            input.value = currentValue - 1;
+            const data = sucursalesSeleccionadas.get(planId);
+            data.cantidad = parseInt(input.value);
+            sucursalesSeleccionadas.set(planId, data);
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.btnMasSucursal').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const input = container.querySelector(`input[data-plan="${planId}"]`);
+          const currentValue = parseInt(input.value);
+          if (currentValue < 100) {
+            input.value = currentValue + 1;
+            const data = sucursalesSeleccionadas.get(planId);
+            data.cantidad = parseInt(input.value);
+            sucursalesSeleccionadas.set(planId, data);
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.cantidad-sucursal').forEach(input => {
+        input.addEventListener('input', function() {
+          const planId = this.dataset.plan;
+          const value = parseInt(this.value) || 1;
+          const data = sucursalesSeleccionadas.get(planId);
+          data.cantidad = value;
+          sucursalesSeleccionadas.set(planId, data);
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      container.querySelectorAll('.btnEliminarSucursal').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          sucursalesSeleccionadas.delete(planId);
+          renderSucursales();
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      // Event listeners para características por sucursal
+      container.querySelectorAll('.caracteristica-sucursal').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          
+          if (this.checked) {
+            data.caracteristicas.set(caracteristicaId, 1);
+            
+            // Si es la característica de voz, inicializar valores por defecto
+            if (caracteristicaId === 'voz') {
+              data.caracteristicas.set('voz-tipo', 'entrante');
+              data.caracteristicas.set('voz-horas', 1);
+            }
+          } else {
+            data.caracteristicas.delete(caracteristicaId);
+            
+            // Si es la característica de voz, eliminar también los valores relacionados
+            if (caracteristicaId === 'voz') {
+              data.caracteristicas.delete('voz-tipo');
+              data.caracteristicas.delete('voz-horas');
+            }
+            
+            // Si se desmarca videollamada, eliminar características dependientes
+            if (caracteristicaId === 'videollamada') {
+              data.caracteristicas.delete('cobrowse');
+              data.caracteristicas.delete('analisis-sentimiento');
+              data.caracteristicas.delete('cabina-virtual');
+            }
+          }
+          
+          sucursalesSeleccionadas.set(planId, data);
+          renderSucursales(); // Re-renderizar para actualizar UI
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      // Event listeners para características con cantidad
+      container.querySelectorAll('.btnMenosCaracteristica').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const cantidadActual = data.caracteristicas.get(caracteristicaId) || 0;
+          
+          if (cantidadActual > 0) {
+            data.caracteristicas.set(caracteristicaId, cantidadActual - 1);
+            sucursalesSeleccionadas.set(planId, data);
+            renderSucursales();
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      // Event listeners para paquetes
+      container.querySelectorAll('.btnMenosPaquete').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const cantidadActual = data.caracteristicas.get(caracteristicaId) || 0;
+          
+          if (cantidadActual > 0) {
+            data.caracteristicas.set(caracteristicaId, cantidadActual - 1);
+            sucursalesSeleccionadas.set(planId, data);
+            renderSucursales();
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.btnMasPaquete').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const cantidadActual = data.caracteristicas.get(caracteristicaId) || 0;
+          
+          if (cantidadActual < 100) {
+            data.caracteristicas.set(caracteristicaId, cantidadActual + 1);
+            sucursalesSeleccionadas.set(planId, data);
+            renderSucursales();
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.cantidad-paquete').forEach(input => {
+        input.addEventListener('input', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const value = parseInt(this.value) || 0;
+          
+          if (value > 0) {
+            data.caracteristicas.set(caracteristicaId, value);
+          } else {
+            data.caracteristicas.delete(caracteristicaId);
+          }
+          
+          sucursalesSeleccionadas.set(planId, data);
+          renderSucursales();
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      container.querySelectorAll('.btnMasCaracteristica').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const cantidadActual = data.caracteristicas.get(caracteristicaId) || 0;
+          
+          if (cantidadActual < 20) {
+            data.caracteristicas.set(caracteristicaId, cantidadActual + 1);
+            sucursalesSeleccionadas.set(planId, data);
+            renderSucursales();
+            actualizarResumen();
+            calcularTotal();
+          }
+        });
+      });
+      
+      container.querySelectorAll('.cantidad-caracteristica').forEach(input => {
+        input.addEventListener('input', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const value = parseInt(this.value) || 0;
+          
+          if (value > 0) {
+            data.caracteristicas.set(caracteristicaId, value);
+          } else {
+            data.caracteristicas.delete(caracteristicaId);
+          }
+          
+          sucursalesSeleccionadas.set(planId, data);
+          renderSucursales();
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      // Event listeners para configuración de voz
+      container.querySelectorAll('.tipo-voz').forEach(select => {
+        select.addEventListener('change', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const tipoVoz = this.value;
+          
+          data.caracteristicas.set('voz-tipo', tipoVoz);
+          sucursalesSeleccionadas.set(planId, data);
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+      
+      container.querySelectorAll('.horas-voz').forEach(input => {
+        input.addEventListener('input', function() {
+          const planId = this.dataset.plan;
+          const caracteristicaId = this.dataset.caracteristica;
+          const data = sucursalesSeleccionadas.get(planId);
+          const horas = parseInt(this.value) || 1;
+          
+          data.caracteristicas.set('voz-horas', horas);
+          sucursalesSeleccionadas.set(planId, data);
+          actualizarResumen();
+          calcularTotal();
+        });
+      });
+    }
+
+
+    // Actualizar resumen
+    function actualizarResumen() {
+      const container = document.getElementById('resumenConfiguracion');
+      
+      let html = '<div class="space-y-4">';
+      
+      // Mostrar información de JB Chatbot si está seleccionado
+      if (jbPlanSeleccionado) {
+        let precioJB = 0;
+        let nombrePlanJB = '';
+        
+        if (jbPlanSeleccionado === 'custom') {
+          precioJB = calcularPrecioCustomJB();
+          nombrePlanJB = 'Custom';
+        } else if (jbPlanSeleccionado === 'enterprise') {
+          precioJB = calcularPrecioEnterpriseJB();
+          nombrePlanJB = 'Enterprise';
+        } else {
+          const preciosJB = {
+            'starter': 400,
+            'professional': 800
+          };
+          precioJB = preciosJB[jbPlanSeleccionado] || 0;
+          nombrePlanJB = jbPlanSeleccionado.charAt(0).toUpperCase() + jbPlanSeleccionado.slice(1);
+        }
+        
+        html += `
+          <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="text-3xl">🤖</div>
+                <div>
+                  <h4 class="text-xl font-bold">JB Chatbot - ${nombrePlanJB}</h4>
+                  <p class="opacity-90 text-sm">Solución de chatbot inteligente</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm opacity-80">Precio:</div>
+                <div class="text-2xl font-bold">$${precioJB.toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Mostrar sucursales si hay alguna seleccionada
+      if (sucursalesSeleccionadas.size === 0 && !jbPlanSeleccionado) {
+        container.innerHTML = '<p class="text-slate-600">Agrega sucursales o selecciona un plan JB para ver el resumen</p>';
+        return;
+      }
+      
+      // Obtener ponderador del país (solo para mostrar información)
+      const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
+      const ponderador = ponderadoresPais[paisSeleccionado] || 1;
+      
+      // Mostrar cada tipo de sucursal (sin aplicar ponderador al total)
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        const plan = planes.find(p => p.id === planId);
+        const cantidad = data.cantidad;
+        const caracteristicasSucursal = data.caracteristicas || new Set();
+        const precioConDescuento = plan.precio * (1 - (plan.descuento || 0) / 100);
+        const totalPlan = precioConDescuento * cantidad;
+        
+        html += `
+          <div class="bg-gradient-to-r ${plan.color} rounded-xl p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="text-3xl">${plan.icono}</div>
+                <div>
+                  <h4 class="text-xl font-bold">${plan.nombre}</h4>
+                  <p class="opacity-90 text-sm">${plan.descripcion}</p>
+                  ${plan.descuento > 0 ? `<p class="opacity-80 text-xs">Descuento: ${plan.descuento}%</p>` : ''}
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm opacity-80">Cantidad:</div>
+                <div class="text-2xl font-bold">${cantidad}</div>
+              </div>
+            </div>
+            <div class="border-t border-white/20 pt-4">
+              <div class="flex justify-between items-center mb-3">
+                <div>
+                  <div class="text-sm opacity-80">Precio original: $${plan.precio.toLocaleString()}</div>
+                  ${plan.descuento > 0 ? `<div class="text-sm opacity-80">Con descuento: $${precioConDescuento.toLocaleString()}</div>` : ''}
+                  ${ponderador !== 1 ? `<div class="text-sm opacity-80">Ponderador país (${ponderador}x): $${(precioConDescuento * ponderador).toLocaleString()}</div>` : ''}
+                </div>
+                <div class="text-right">
+                  <div class="text-sm opacity-80">Total:</div>
+                  <span class="text-2xl font-bold">$${totalPlan.toLocaleString()}</span>
+                </div>
+              </div>
+              ${caracteristicasSucursal.size > 0 ? `
+                <div class="border-t border-white/20 pt-3">
+                  <div class="text-sm opacity-80 mb-2">Características:</div>
+                  ${Array.from(caracteristicasSucursal.entries()).map(([caracteristicaId, cantidadCaracteristica]) => {
+                    // Solo procesar características que existen en el array caracteristicas
+                    // Ignorar características especiales como 'voz-tipo' y 'voz-horas'
+                    if (caracteristicaId === 'voz-tipo' || caracteristicaId === 'voz-horas') {
+                      return '';
+                    }
+                    
+                    const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
+                    if (!caracteristica) {
+                      return '';
+                    }
+                    
+                    let totalCaracteristica = 0;
+                    let descripcionCalculo = '';
+                    
+                    if (caracteristica.esCantidad) {
+                      // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
+                      let cantidadACobrar = cantidadCaracteristica;
+                      
+                      // Si es cartelería digital, restar la cantidad mínima gratuita
+                      if (caracteristica.cantidadMinimaGratuita) {
+                        const cantidadMinima = cantidadMinimaCarteleria[planId] || 0;
+                        cantidadACobrar = Math.max(0, cantidadCaracteristica - cantidadMinima);
+                        
+                        if (cantidadCaracteristica > cantidadMinima) {
+                          descripcionCalculo = `(${cantidadMinima} incluidas + ${cantidadACobrar} adicionales)`;
+                        } else {
+                          descripcionCalculo = `(${cantidadCaracteristica} incluidas sin costo)`;
+                        }
+                      } else {
+                        descripcionCalculo = `(${cantidadCaracteristica} pantallas)`;
+                      }
+                      
+                      totalCaracteristica = caracteristica.precio * cantidadACobrar * cantidad;
+                    } else if (caracteristica.esPaquete) {
+                      // Para paquetes: precio × cantidad_paquetes × cantidad_sucursales
+                      if (caracteristica.dependeDeVideollamada) {
+                        // Para paquetes que dependen de videollamada: calcular basado en horas de videollamada
+                        const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+                        totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+                        descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
+                      } else {
+                        // Para paquetes normales: precio × cantidad_paquetes × cantidad_sucursales
+                        totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
+                        descripcionCalculo = `(${cantidadCaracteristica} paquetes)`;
+                      }
+                    } else if (caracteristica.id === 'cabina-virtual') {
+                      // Cabina virtual: precio fijo por sucursal
+                      totalCaracteristica = caracteristica.precio * cantidad;
+                      descripcionCalculo = '';
+                    } else if (caracteristica.dependeDeVideollamada) {
+                      // Para características que dependen de videollamada: calcular basado en horas de videollamada
+                      const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+                      totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+                      descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
+                    } else if (caracteristica.esVoz) {
+                      // Para características de voz: calcular según tipo y horas
+                      const tipoVoz = caracteristicasSucursal.get('voz-tipo') || 'entrante';
+                      const horasVoz = caracteristicasSucursal.get('voz-horas') || 1;
+                      
+                      if (tipoVoz === 'entrante') {
+                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios * cantidad;
+                        descripcionCalculo = `(${horasVoz} horas entrantes × ${plan.usuarios} usuarios)`;
+                      } else if (tipoVoz === 'saliente') {
+                        totalCaracteristica = caracteristica.precio * horasVoz * plan.usuarios * cantidad;
+                        descripcionCalculo = `(${horasVoz} horas salientes × ${plan.usuarios} usuarios)`;
+                      }
+                    } else {
+                      // Para características normales: precio × usuarios × cantidad_sucursales
+                      totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad;
+                      descripcionCalculo = `(${plan.usuarios} usuarios)`;
+                    }
+                    
+                    return `
+                      <div class="flex justify-between items-center text-sm">
+                        <span class="opacity-80">${caracteristica?.nombre || caracteristicaId} ${descripcionCalculo}</span>
+                        <span class="font-semibold">$${totalCaracteristica.toLocaleString()}</span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    // Función auxiliar para obtener el total de sucursales
+    function getTotalSucursales() {
+      let total = 0;
+      sucursalesSeleccionadas.forEach(data => {
+        total += data.cantidad;
+      });
+      return total;
+    }
+
+    // Función auxiliar para calcular horas de videollamada por sucursal
+    function calcularHorasVideollamada(caracteristicasSucursal) {
+      let horasBase = 0;
+      let paquetesVideollamada = 0;
+      
+      // Verificar si videollamada está seleccionada (40 horas base)
+      if (caracteristicasSucursal.get('videollamada') > 0) {
+        horasBase = 40;
+      }
+      
+      // Verificar paquetes adicionales de videollamada (8 horas por paquete)
+      const paquetesVideollamadaAdicional = caracteristicasSucursal.get('paquete-videollamada') || 0;
+      paquetesVideollamada = paquetesVideollamadaAdicional * 8;
+      
+      return horasBase + paquetesVideollamada;
+    }
+
+    // Calcular total
+    function calcularTotal() {
+      let precioBase = 0;
+      let precioCaracteristicas = 0;
+      let totalSucursales = 0;
+
+      // Calcular precio base y características por cada tipo de sucursal
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        const plan = planes.find(p => p.id === planId);
+        const cantidad = data.cantidad;
+        const caracteristicasSucursal = data.caracteristicas || new Set();
+        
+        // Precio base con descuento aplicado
+        const precioConDescuento = plan.precio * (1 - (plan.descuento || 0) / 100);
+        precioBase += precioConDescuento * cantidad;
+        totalSucursales += cantidad;
+        
+        // Características específicas para este tipo de sucursal
+        caracteristicasSucursal.forEach((cantidadCaracteristica, caracteristicaId) => {
+          // Solo procesar características que existen en el array caracteristicas
+          // Ignorar características especiales como 'voz-tipo' y 'voz-horas'
+          if (caracteristicaId === 'voz-tipo' || caracteristicaId === 'voz-horas') {
+            return;
+          }
+          
+          const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
+          if (caracteristica) {
+            if (caracteristica.esCantidad) {
+              // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
+              let cantidadACobrar = cantidadCaracteristica;
+              
+              // Si es cartelería digital, restar la cantidad mínima gratuita
+              if (caracteristica.cantidadMinimaGratuita) {
+                const cantidadMinima = cantidadMinimaCarteleria[planId] || 0;
+                cantidadACobrar = Math.max(0, cantidadCaracteristica - cantidadMinima);
+              }
+              
+              precioCaracteristicas += caracteristica.precio * cantidadACobrar * cantidad;
+            } else if (caracteristica.esPaquete) {
+              // Para paquetes: precio × cantidad_paquetes × cantidad_sucursales
+              if (caracteristica.dependeDeVideollamada) {
+                // Para paquetes que dependen de videollamada: calcular basado en horas de videollamada
+                const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+                precioCaracteristicas += caracteristica.precio * horasVideollamada * cantidad;
+              } else {
+                // Para paquetes normales: precio × cantidad_paquetes × cantidad_sucursales
+                precioCaracteristicas += caracteristica.precio * cantidadCaracteristica * cantidad;
+              }
+            } else if (caracteristica.dependeDeVideollamada) {
+              // Para características que dependen de videollamada: calcular basado en horas de videollamada
+              const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+              precioCaracteristicas += caracteristica.precio * horasVideollamada * cantidad;
+            } else if (caracteristica.esVoz) {
+              // Para características de voz: calcular según tipo y horas
+              const tipoVoz = caracteristicasSucursal.get('voz-tipo') || 'entrante';
+              const horasVoz = caracteristicasSucursal.get('voz-horas') || 1;
+              
+              if (tipoVoz === 'entrante') {
+                // Entrante: $0.6 por hora × horas × cantidad de usuarios
+                precioCaracteristicas += caracteristica.precio * horasVoz * plan.usuarios;
+              } else if (tipoVoz === 'saliente') {
+                // Saliente: precio especial (por ahora usar el mismo precio)
+                precioCaracteristicas += caracteristica.precio * horasVoz * plan.usuarios;
+              }
+            } else {
+              // Para características normales: precio × usuarios × cantidad_sucursales
+              precioCaracteristicas += caracteristica.precio * plan.usuarios * cantidad;
+            }
+          }
+        });
+      });
+
+      // Calcular precio de JB Chatbot
+      let precioJB = 0;
+      if (jbPlanSeleccionado) {
+        if (jbPlanSeleccionado === 'custom') {
+          precioJB = calcularPrecioCustomJB();
+        } else if (jbPlanSeleccionado === 'enterprise') {
+          precioJB = calcularPrecioEnterpriseJB();
+        } else {
+          const preciosJB = {
+            'starter': 400,
+            'professional': 800
+          };
+          precioJB = preciosJB[jbPlanSeleccionado] || 0;
+        }
+      }
+
+      // Calcular precio de Tenant addons
+      let precioTenant = 0;
+      if (tenantAddons.get('sms')) {
+        precioTenant += 10; // SMS
+      }
+      if (tenantAddons.get('whatsapp')) {
+        precioTenant += 10; // WhatsApp
+      }
+      if (tenantAddons.get('sandbox')) {
+        precioTenant += 10 * tenantAddons.get('sandbox'); // Sandbox
+      }
+      
+      // Calcular total de sucursales excluyendo 'individual'
+      let totalSucursalesSinIndividual = 0;
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        if (planId !== 'individual') {
+          totalSucursalesSinIndividual += data.cantidad;
+        }
+      });
+      
+      if (tenantAddons.get('citas')) {
+        precioTenant += 50 * totalSucursalesSinIndividual; // Citas × cantidad de sucursales (sin individual)
+      }
+      // Si hay videollamadas, Fila Virtual no tiene costo
+      let hayVideollamadas = false;
+      sucursalesSeleccionadas.forEach(data => {
+        if ((data.caracteristicas && (data.caracteristicas.get('videollamada') || 0) > 0)) {
+          hayVideollamadas = true;
+        }
+      });
+      if (tenantAddons.get('fila-virtual')) {
+        precioTenant += hayVideollamadas ? 0 : (50 * totalSucursalesSinIndividual); // Fila Virtual gratis si hay videollamadas
+      }
+      if (tenantAddons.get('sso')) {
+        precioTenant += 100; // SSO
+      }
+      
+      // Calcular encuestas: $10 × cantidad de sucursales (individual cuenta como 1)
+      if (tenantAddons.get('encuestas')) {
+        let cantidadEncuestas = 0;
+        sucursalesSeleccionadas.forEach((data, planId) => {
+          if (planId === 'individual') {
+            // Para individual, cuenta como 1 sin importar la cantidad
+            cantidadEncuestas += 1;
+          } else {
+            // Para otros tipos, cuenta la cantidad real
+            cantidadEncuestas += data.cantidad;
+          }
+        });
+        precioTenant += 10 * cantidadEncuestas;
+      }
+
+      // Calcular valores de referencia
+      const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
+      const ponderador = ponderadoresPais[paisSeleccionado] || 1;
+      
+      // Valor de referencia para sucursales (sin ponderador)
+      const valorReferenciaSucursales = precioBase + precioCaracteristicas;
+      
+      // Valor de referencia para el país (con ponderador)
+      const valorReferenciaPais = valorReferenciaSucursales * ponderador;
+
+      // El subtotal NO incluye el ponderador
+      const subtotal = precioBase + precioCaracteristicas + precioJB + precioTenant;
+      const descuentoHabilitado = document.getElementById('chkDescuento').checked;
+      const porcentajeDescuento = descuentoHabilitado ? parseInt(document.getElementById('descuento').value) || 0 : 0;
+      const descuento = subtotal * (porcentajeDescuento / 100);
+      const totalRecurrente = subtotal - descuento;
+
+      // Calcular Pago Único
+      let totalPagoUnico = 0;
+      const horasNumiaApp = parseInt(document.getElementById('horasNumiaApp')?.value || '0') || 0;
+      const horasJB = parseInt(document.getElementById('horasJB')?.value || '0') || 0;
+      const horasIntegracion = parseInt(document.getElementById('horasIntegracion')?.value || '0') || 0;
+      const valorHora = parseInt(document.getElementById('valorHora')?.value || '50') || 50;
+      
+      const totalHoras = horasNumiaApp + horasJB + horasIntegracion;
+      if (totalHoras > 0) {
+        totalPagoUnico = totalHoras * valorHora;
+      }
+
+      // Calcular Total Final
+      const totalFinal = totalRecurrente + totalPagoUnico;
+
+      document.getElementById('totalSucursales').textContent = totalSucursales;
+      document.getElementById('precioBase').textContent = `$${precioBase.toLocaleString()}`;
+      document.getElementById('precioCaracteristicas').textContent = `$${precioCaracteristicas.toLocaleString()}`;
+      document.getElementById('valorReferenciaSucursales').textContent = `$${valorReferenciaSucursales.toLocaleString()}`;
+      document.getElementById('valorReferenciaPais').textContent = `$${valorReferenciaPais.toLocaleString()}`;
+      document.getElementById('precioJB').textContent = `$${precioJB.toLocaleString()}`;
+      document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
+      document.getElementById('totalRecurrente').textContent = `$${totalRecurrente.toLocaleString()}`;
+      document.getElementById('totalPagoUnico').textContent = `$${totalPagoUnico.toLocaleString()}`;
+      document.getElementById('totalFinal').textContent = `$${totalFinal.toLocaleString()}`;
+      
+      // Mostrar información del país y ponderador
+      const paisDisplay = document.getElementById('paisDisplay');
+      if (paisDisplay) {
+        const nombresPais = {
+          'argentina': 'Argentina',
+          'bolivia': 'Bolivia',
+          'paraguay': 'Paraguay',
+          'espana': 'España',
+          'uruguay': 'Uruguay',
+          'chile': 'Chile',
+          'colombia': 'Colombia',
+          'peru': 'Perú',
+          'mexico': 'México',
+          'centroamerica': 'Centroamérica',
+          'otro': 'Otro'
+        };
+        const nombrePais = nombresPais[paisSeleccionado] || 'Otro';
+        paisDisplay.textContent = `${nombrePais} (Ponderador: ${ponderador}x)`;
+      }
+      
+      // Actualizar detalle de Compañía
+      actualizarDetalleCompania(totalSucursalesSinIndividual, precioTenant);
+    }
+    
+    // Función para actualizar el detalle de compañía
+    function actualizarDetalleCompania(totalSucursalesSinIndividual, precioTenant) {
+      const container = document.getElementById('detalleCompaniaContainer');
+      
+      // Solo mostrar si hay algún addon seleccionado
+      const hayAddons = tenantAddons.get('sms') || 
+                       tenantAddons.get('whatsapp') || 
+                       tenantAddons.get('sandbox') > 0 ||
+                       tenantAddons.get('citas') || 
+                       tenantAddons.get('fila-virtual') || 
+                       tenantAddons.get('sso') ||
+                       tenantAddons.get('encuestas');
+      
+      if (!hayAddons) {
+        container.innerHTML = '';
+        return;
+      }
+      
+      let html = `
+        <div class="mt-2">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-slate-600 font-medium">Compañía:</span>
+            <span class="font-semibold">$${precioTenant.toLocaleString()}</span>
+          </div>
+          <div class="ml-4 space-y-1 text-sm">
+      `;
+      
+      if (tenantAddons.get('sms')) {
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>SMS:</span>
+          <span>$10</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('whatsapp')) {
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>WhatsApp:</span>
+          <span>$10</span>
+        </div>`;
+      }
+      
+      const cantidadSandbox = tenantAddons.get('sandbox') || 0;
+      if (cantidadSandbox > 0) {
+        const precioSandbox = 10 * cantidadSandbox;
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>Sandbox (${cantidadSandbox}):</span>
+          <span>$${precioSandbox}</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('citas')) {
+        const precioCitas = 50 * totalSucursalesSinIndividual;
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>Citas:</span>
+          <span>$${precioCitas}</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('fila-virtual')) {
+        // Gratis si hay videollamadas en alguna sucursal
+        let hayVideollamadas = false;
+        sucursalesSeleccionadas.forEach(data => {
+          if ((data.caracteristicas && (data.caracteristicas.get('videollamada') || 0) > 0)) {
+            hayVideollamadas = true;
+          }
+        });
+        const precioFilaVirtual = hayVideollamadas ? 0 : (50 * totalSucursalesSinIndividual);
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>Fila Virtual:</span>
+          <span>$${precioFilaVirtual}</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('sso')) {
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>SSO:</span>
+          <span>$100</span>
+        </div>`;
+      }
+      
+      if (tenantAddons.get('encuestas')) {
+        // Calcular cantidad de encuestas (individual cuenta como 1)
+        let cantidadEncuestas = 0;
+        sucursalesSeleccionadas.forEach((data, planId) => {
+          if (planId === 'individual') {
+            cantidadEncuestas += 1;
+          } else {
+            cantidadEncuestas += data.cantidad;
+          }
+        });
+        const precioEncuestas = 10 * cantidadEncuestas;
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>Encuestas:</span>
+          <span>$${precioEncuestas}</span>
+        </div>`;
+      }
+      
+      html += `</div></div>`;
+      
+      container.innerHTML = html;
     }
 
     // Configurar event listeners
     function setupEventListeners() {
+      document.getElementById('chkDescuento').addEventListener('change', function() {
+        document.getElementById('descuento').disabled = !this.checked;
+        calcularTotal();
+      });
+
+      document.getElementById('descuento').addEventListener('input', calcularTotal);
+
+      // Event listener para el selector de país
+      const paisSelect = document.getElementById('pais');
+      if (paisSelect) {
+        paisSelect.addEventListener('change', calcularTotal);
+      }
+
       document.getElementById('btnGenerarPDF').addEventListener('click', generarPDF);
+      
+      // Event listener para agregar sucursal
+      document.getElementById('btnAgregarSucursal').addEventListener('click', mostrarModalAgregarSucursal);
       
       // Event listeners para planes de JB
       document.querySelectorAll('.jb-plan').forEach(plan => {
         plan.addEventListener('click', function() {
           const planType = this.dataset.plan;
           seleccionarJBPlan(planType);
+        });
+      });
+      
+      // Event listeners para addons del Tenant
+      document.querySelectorAll('.tenant-addon').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const addonId = this.dataset.addon;
+          const isChecked = this.checked;
+          
+          if (addonId === 'sandbox') {
+            // Para sandbox, usar la cantidad actual
+            tenantAddons.set(addonId, cantidadSandbox);
+          } else {
+            // Para otros addons, usar true/false
+            tenantAddons.set(addonId, isChecked);
+          }
+          
+          calcularTotal();
+        });
+      });
+      
+      // Event listeners para controles de sandbox
+      document.querySelectorAll('.btnMenosSandbox').forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (cantidadSandbox > 0) {
+            cantidadSandbox--;
+            document.querySelector('.cantidad-sandbox').value = cantidadSandbox;
+            tenantAddons.set('sandbox', cantidadSandbox);
+            calcularTotal();
+          }
+        });
+      });
+      
+      document.querySelectorAll('.btnMasSandbox').forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (cantidadSandbox < 10) {
+            cantidadSandbox++;
+            document.querySelector('.cantidad-sandbox').value = cantidadSandbox;
+            tenantAddons.set('sandbox', cantidadSandbox);
+            calcularTotal();
+          }
+        });
+      });
+      
+      document.querySelectorAll('.cantidad-sandbox').forEach(input => {
+        input.addEventListener('input', function() {
+          cantidadSandbox = parseInt(this.value) || 0;
+          tenantAddons.set('sandbox', cantidadSandbox);
+          calcularTotal();
+        });
+      });
+      
+      // Event listeners para Pago Único
+      const horasNumiaAppInput = document.getElementById('horasNumiaApp');
+      const horasJBInput = document.getElementById('horasJB');
+      const horasIntegracionInput = document.getElementById('horasIntegracion');
+      const valorHoraInput = document.getElementById('valorHora');
+      
+      if (horasNumiaAppInput) {
+        horasNumiaAppInput.addEventListener('input', calcularTotal);
+      }
+      if (horasJBInput) {
+        horasJBInput.addEventListener('input', calcularTotal);
+      }
+      if (horasIntegracionInput) {
+        horasIntegracionInput.addEventListener('input', calcularTotal);
+      }
+      if (valorHoraInput) {
+        valorHoraInput.addEventListener('input', calcularTotal);
+      }
+      
+      // Los event listeners para configuración custom se configurarán cuando se seleccione el plan custom
+    }
+
+    // Mostrar modal para agregar sucursal
+    function mostrarModalAgregarSucursal() {
+      // Crear modal dinámicamente
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+          <h3 class="text-2xl font-bold mb-6">Agregar Tipo de Sucursal</h3>
+          <div class="space-y-4">
+            ${planes.map(plan => `
+              <div class="border border-slate-200 rounded-lg p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors plan-option" data-plan-id="${plan.id}">
+                <div class="flex items-center gap-3">
+                  <div class="text-2xl">${plan.icono}</div>
+                  <div>
+                    <h4 class="font-semibold">${plan.nombre}</h4>
+                    <p class="text-sm text-slate-600">${plan.descripcion}</p>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button class="px-4 py-2 text-slate-600 hover:text-slate-800" onclick="this.closest('.fixed').remove()">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Agregar event listeners a las opciones
+      modal.querySelectorAll('.plan-option').forEach(option => {
+        option.addEventListener('click', function() {
+          const planId = this.dataset.planId;
+          agregarSucursal(planId);
+          modal.remove();
         });
       });
     }
@@ -396,7 +2068,7 @@
       const ocrElement = document.getElementById('enterpriseOCR');
       
       if (!ocrElement) {
-        return 1600; // Valor por defecto si el elemento no está disponible
+        return 800; // Valor por defecto si el elemento no está disponible
       }
       
       const ocr = parseInt(ocrElement.value) || 0;
@@ -441,7 +2113,7 @@
       const costoBase = costoLiveAgents + costoLLM + costoOCR;
       const precioConMargen = costoBase * (1 + costosUnitarios.margenCustom);
       
-      // Asegurar precio mínimo de $3,000
+      // Asegurar precio mínimo de $1,300
       const precioMinimo = 3000;
       const precioFinal = Math.max(precioConMargen, precioMinimo);
       
@@ -586,7 +2258,7 @@
       const margen = costoBase * costosUnitarios.margenCustom;
       const precioConMargen = costoBase + margen;
       
-      // Asegurar precio mínimo de $3,000
+      // Asegurar precio mínimo de $1,300
       const precioMinimo = 3000;
       const total = Math.max(precioConMargen, precioMinimo);
       
@@ -621,143 +2293,153 @@
       actualizarDesgloseCustom();
     }
 
-    // Actualizar resumen
-    function actualizarResumen() {
-      const container = document.getElementById('resumenConfiguracion');
-      
-      let html = '<div class="space-y-4">';
-      
-      // Mostrar información de JB Chatbot si está seleccionado
-      if (jbPlanSeleccionado) {
-        let precioJB = 0;
-        let nombrePlanJB = '';
-        
-        if (jbPlanSeleccionado === 'custom') {
-          precioJB = calcularPrecioCustomJB();
-          nombrePlanJB = 'Custom';
-        } else if (jbPlanSeleccionado === 'enterprise') {
-          precioJB = calcularPrecioEnterpriseJB();
-          nombrePlanJB = 'Enterprise';
-        } else {
-          const preciosJB = {
-            'starter': 400,
-            'professional': 800
-          };
-          precioJB = preciosJB[jbPlanSeleccionado] || 0;
-          nombrePlanJB = jbPlanSeleccionado.charAt(0).toUpperCase() + jbPlanSeleccionado.slice(1);
-        }
-        
-        html += `
-          <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-3">
-                <div class="text-3xl">🤖</div>
-                <div>
-                  <h4 class="text-xl font-bold">JB Chatbot - ${nombrePlanJB}</h4>
-                  <p class="opacity-90 text-sm">Solución de chatbot inteligente</p>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="text-sm opacity-80">Precio:</div>
-                <div class="text-2xl font-bold">$${precioJB.toLocaleString()}</div>
-              </div>
-            </div>
-          </div>
-        `;
+    // Agregar sucursal
+    function agregarSucursal(planId) {
+      if (sucursalesSeleccionadas.has(planId)) {
+        // Si ya existe, incrementar cantidad
+        const data = sucursalesSeleccionadas.get(planId);
+        data.cantidad += 1;
+        sucursalesSeleccionadas.set(planId, data);
       } else {
-        container.innerHTML = '<p class="text-slate-600">Selecciona un plan JB para ver el resumen</p>';
-        return;
+        // Si no existe, agregar con cantidad 1 y características vacías
+        sucursalesSeleccionadas.set(planId, {
+          cantidad: 1,
+          caracteristicas: new Map()
+        });
       }
-
-      html += '</div>';
-      container.innerHTML = html;
-    }
-
-    // Calcular total
-    function calcularTotal() {
-      let precioJB = 0;
       
-      if (jbPlanSeleccionado) {
-        if (jbPlanSeleccionado === 'custom') {
-          precioJB = calcularPrecioCustomJB();
-        } else if (jbPlanSeleccionado === 'enterprise') {
-          precioJB = calcularPrecioEnterpriseJB();
-        } else {
-          const preciosJB = {
-            'starter': 400,
-            'professional': 800
-          };
-          precioJB = preciosJB[jbPlanSeleccionado] || 0;
-        }
-      }
-
-      document.getElementById('precioJB').textContent = `$${precioJB.toLocaleString()}`;
-      document.getElementById('total').textContent = `$${precioJB.toLocaleString()}`;
+      renderSucursales();
+      actualizarResumen();
+      calcularTotal();
     }
 
     // Generar PDF
     function generarPDF() {
-      if (!jbPlanSeleccionado) {
-        alert('Por favor selecciona un plan JB primero');
+      if (sucursalesSeleccionadas.size === 0) {
+        alert('Por favor agrega al menos una sucursal primero');
         return;
       }
 
-      // Crear un PDF simple usando window.print() ya que no tenemos jsPDF disponible
-      const ventanaImpresion = window.open('', '_blank');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
       const cliente = document.getElementById('cliente').value || 'Cliente';
       
-      let precioJB = 0;
-      let nombrePlanJB = '';
+      // Título
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text('Cotización Numia V2', 20, 30);
       
-      if (jbPlanSeleccionado === 'custom') {
-        precioJB = calcularPrecioCustomJB();
-        nombrePlanJB = 'Custom';
-      } else if (jbPlanSeleccionado === 'enterprise') {
-        precioJB = calcularPrecioEnterpriseJB();
-        nombrePlanJB = 'Enterprise';
-      } else {
-        const preciosJB = {
-          'starter': 400,
-          'professional': 800
-        };
-        precioJB = preciosJB[jbPlanSeleccionado] || 0;
-        nombrePlanJB = jbPlanSeleccionado.charAt(0).toUpperCase() + jbPlanSeleccionado.slice(1);
-      }
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Cliente: ${cliente}`, 20, 45);
+      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 55);
       
-      ventanaImpresion.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Cotización JB Chatbot</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .plan { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .total { font-size: 24px; font-weight: bold; text-align: center; margin-top: 30px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Cotización JB Chatbot</h1>
-            <p><strong>Cliente:</strong> ${cliente}</p>
-            <p><strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>
-          </div>
-          
-          <div class="plan">
-            <h2>JB Chatbot - ${nombrePlanJB}</h2>
-            <p>Solución de chatbot inteligente</p>
-            <p><strong>Precio:</strong> $${precioJB.toLocaleString()}</p>
-          </div>
-          
-          <div class="total">
-            Total: $${precioJB.toLocaleString()}
-          </div>
-        </body>
-        </html>
-      `);
+      // Sucursales seleccionadas
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Sucursales Seleccionadas:', 20, 75);
       
-      ventanaImpresion.document.close();
-      ventanaImpresion.print();
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      let yPosition = 90;
+      
+      sucursalesSeleccionadas.forEach((data, planId) => {
+        const plan = planes.find(p => p.id === planId);
+        const cantidad = data.cantidad;
+        const caracteristicasSucursal = data.caracteristicas || new Set();
+        const precioConDescuento = plan.precio * (1 - (plan.descuento || 0) / 100);
+        const totalPlan = precioConDescuento * cantidad;
+        
+        doc.text(`${plan.nombre} - ${plan.descripcion}`, 20, yPosition);
+        if (plan.descuento > 0) {
+          doc.text(`Precio original: $${plan.precio.toLocaleString()} | Descuento: ${plan.descuento}% | Precio con descuento: $${precioConDescuento.toLocaleString()}`, 25, yPosition + 10);
+          doc.text(`Cantidad: ${cantidad} | Total: $${totalPlan.toLocaleString()}`, 25, yPosition + 20);
+          yPosition += 35;
+        } else {
+          doc.text(`Cantidad: ${cantidad} | Precio unitario: $${plan.precio.toLocaleString()} | Total: $${totalPlan.toLocaleString()}`, 25, yPosition + 10);
+          yPosition += 25;
+        }
+        
+        if (caracteristicasSucursal.size > 0) {
+          doc.text(`Características:`, 25, yPosition);
+          yPosition += 10;
+          caracteristicasSucursal.forEach((cantidadCaracteristica, caracteristicaId) => {
+            const caracteristica = caracteristicas.find(c => c.id === caracteristicaId);
+            let totalCaracteristica = 0;
+            let descripcionCalculo = '';
+            
+            if (caracteristica.esCantidad) {
+              // Para características con cantidad: precio × cantidad_característica × cantidad_sucursales
+              let cantidadACobrar = cantidadCaracteristica;
+              
+              // Si es cartelería digital, restar la cantidad mínima gratuita
+              if (caracteristica.cantidadMinimaGratuita) {
+                const cantidadMinima = cantidadMinimaCarteleria[planId] || 0;
+                cantidadACobrar = Math.max(0, cantidadCaracteristica - cantidadMinima);
+                
+                if (cantidadCaracteristica > cantidadMinima) {
+                  descripcionCalculo = ` (${cantidadMinima} incluidas + ${cantidadACobrar} adicionales)`;
+                } else {
+                  descripcionCalculo = ` (${cantidadCaracteristica} incluidas sin costo)`;
+                }
+              } else {
+                descripcionCalculo = ` (${cantidadCaracteristica} pantallas)`;
+              }
+              
+              totalCaracteristica = caracteristica.precio * cantidadACobrar * cantidad;
+            } else if (caracteristica.esPaquete) {
+              // Para paquetes: precio × cantidad_paquetes × cantidad_sucursales
+              if (caracteristica.dependeDeVideollamada) {
+                // Para paquetes que dependen de videollamada: calcular basado en horas de videollamada
+                const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+                totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+                descripcionCalculo = ` (${horasVideollamada} horas de videollamada)`;
+              } else {
+                // Para paquetes normales: precio × cantidad_paquetes × cantidad_sucursales
+                totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
+                descripcionCalculo = ` (${cantidadCaracteristica} paquetes)`;
+              }
+            } else if (caracteristica.dependeDeVideollamada) {
+              // Para características que dependen de videollamada: calcular basado en horas de videollamada
+              const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
+              totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
+              descripcionCalculo = ` (${horasVideollamada} horas de videollamada)`;
+            } else {
+              // Para características normales: precio × usuarios × cantidad_sucursales
+              totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad;
+              descripcionCalculo = ` (${plan.usuarios} usuarios)`;
+            }
+            
+            const nombreCaracteristica = caracteristica?.nombre || caracteristicaId;
+            doc.text(`• ${nombreCaracteristica}${descripcionCalculo}: $${totalCaracteristica.toLocaleString()}`, 30, yPosition);
+            yPosition += 10;
+          });
+        }
+        yPosition += 10;
+      });
+      
+      // Totales
+      yPosition += 20;
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Resumen de Totales:', 20, yPosition);
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      
+      const totalRecurrente = document.getElementById('totalRecurrente')?.textContent || '$0';
+      const totalPagoUnico = document.getElementById('totalPagoUnico')?.textContent || '$0';
+      const totalFinal = document.getElementById('totalFinal')?.textContent || '$0';
+      
+      doc.text(`Total Recurrente: ${totalRecurrente}`, 20, yPosition + 15);
+      doc.text(`Pago Único: ${totalPagoUnico}`, 20, yPosition + 25);
+      
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Total Final: ${totalFinal}`, 20, yPosition + 40);
+      
+      // Guardar
+      doc.save(`Cotizacion_Numia_${cliente}_${new Date().toISOString().split('T')[0]}.pdf`);
     }
 
     // Inicializar cuando el DOM esté listo

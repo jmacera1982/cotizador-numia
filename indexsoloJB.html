@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JB Chatbot - Cotizador</title>
+  <!-- Google Fonts - Hanken Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      font-family: 'Hanken Grotesk', sans-serif;
+    }
+    
+    .price-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] { 
+      -moz-appearance: textfield; 
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 text-slate-800">
+  <header class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="text-3xl">🤖</div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">JB Chatbot - Cotizador</h1>
+          <p class="text-sm text-slate-600">Solución de chatbot inteligente</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <label class="text-sm flex items-center gap-2">
+          Cliente
+          <input id="cliente" type="text" placeholder="Nombre de cliente" 
+                 class="px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </label>
+        <button id="btnGenerarPDF" 
+                class="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg transition-all duration-200">
+          Generar PDF
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Configuración de JB Chatbot -->
+    <section class="mb-8">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-2xl font-bold mb-6">Configuración de JB Chatbot</h3>
+        
+        <!-- Configuración de JB Chatbot -->
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-8 border border-purple-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="text-3xl">🤖</div>
+            <div>
+              <h4 class="text-lg font-semibold text-slate-800">JB Chatbot</h4>
+              <p class="text-slate-600 text-sm">Solución de chatbot inteligente para tu organización</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="jbPlans">
+            <!-- Starter -->
+            <div class="bg-white rounded-lg p-4 border-2 border-transparent hover:border-purple-300 transition-all cursor-pointer jb-plan" data-plan="starter">
+              <div class="text-center">
+                <h5 class="font-semibold text-lg mb-2">Starter</h5>
+                <div class="text-2xl font-bold text-purple-600 mb-4">$400</div>
+                <div class="text-left space-y-1 text-sm text-slate-600">
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agente de IA: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span># de Agentes de IA: <strong>1</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Live Agent: <strong class="text-red-800">No</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>LLM (GPT‑4o mini): <strong>1M</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Conversaciones: <strong>500/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+            
+            <!-- Professional -->
+            <div class="bg-white rounded-lg p-4 border-2 border-transparent hover:border-purple-300 transition-all cursor-pointer jb-plan" data-plan="professional">
+              <div class="text-center">
+                <h5 class="font-semibold text-lg mb-2">Professional</h5>
+                <div class="text-2xl font-bold text-purple-600 mb-4">$800</div>
+                <div class="text-left space-y-1 text-sm text-slate-600">
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agente de IA: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span># de Agentes de IA: <strong class="text-green-600">10</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Live Agent: <strong>3</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>LLM (GPT‑4o mini): <strong>3M</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Conversaciones: <strong>3000/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+            
+            <!-- Enterprise -->
+            <div class="bg-white rounded-lg p-4 border-2 border-transparent hover:border-purple-300 transition-all cursor-pointer jb-plan" data-plan="enterprise">
+              <div class="text-center">
+                <h5 class="font-semibold text-lg mb-2">Enterprise</h5>
+                <div class="text-2xl font-bold text-purple-600 mb-4">$1600</div>
+                <div class="text-left space-y-1 text-sm text-slate-600">
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agente de IA: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span># de Agentes de IA: <strong class="text-green-600">Ilimitado</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Live Agent: <strong>10</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>LLM (GPT‑4o mini): <strong>10M</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Conversaciones: <strong>10,000/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>OCR: <strong>0/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+            
+            <!-- Custom -->
+            <div class="bg-white rounded-lg p-4 border-2 border-transparent hover:border-purple-300 transition-all cursor-pointer jb-plan" data-plan="custom">
+              <div class="text-center">
+                <h5 class="font-semibold text-lg mb-2">Custom</h5>
+                <div class="text-2xl font-bold text-purple-600 mb-4">$3000</div>
+                <div class="text-left space-y-1 text-sm text-slate-600">
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Agente de IA: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span># de Agentes de IA: <strong class="text-green-600">Ilimitado</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Live Agent: <strong>10</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>LLM (GPT‑4o mini): <strong>200M</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>Conversaciones (mínimas): <strong>30,000/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-400">•</span>
+                    <span>OCR: <strong>0/mes</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-green-600">•</span>
+                    <span>Integración con WhatsApp: <strong class="text-green-600">✓</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Nota sobre WhatsApp -->
+          <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start gap-2">
+              <span class="text-yellow-600 text-sm">⚠️</span>
+              <div class="text-sm text-yellow-800">
+                <strong>Nota importante sobre WhatsApp:</strong> La integración con WhatsApp no incluye el costo de la cuenta de WhatsApp Business ni las interacciones/mensajes. Estos costos son adicionales y deben ser gestionados directamente con WhatsApp.
+              </div>
+          
+            </div>
+          </div>
+          
+          <!-- Nota sobre Agentes de Citas y Turnos -->
+              <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start gap-2">
+              <span class="text-yellow-600 text-sm">⚠️</span>
+              <div class="text-sm text-yellow-800">
+                <strong>Integraciones en JB:</strong>Para cada integración en JB se deben considerar 50 horas de desarrolllo.
+                
+              </div>
+            </div>
+          </div>
+          
+          <!-- Configuración Enterprise (se muestra solo si se selecciona Enterprise) -->
+          <div id="enterpriseConfig" class="mt-6 p-4 bg-white rounded-lg border border-purple-200" style="display: none;">
+            <h6 class="font-semibold text-slate-800 mb-4">Configuración Enterprise</h6>
+            <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad de OCR Mensual</label>
+                <input type="number" id="enterpriseOCR" min="0" value="0" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <p class="text-xs text-slate-500 mt-1">Mínimo: 0 OCR</p>
+              </div>
+            </div>
+            
+            <!-- Desglose del cálculo Enterprise -->
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h7 class="font-semibold text-slate-700 mb-3 block">Desglose del Cálculo Enterprise</h7>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span>Plan Base:</span>
+                  <span>$1600</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>OCR:</span>
+                  <span id="desgloseEnterpriseOCR">0 × $0.008 = $0</span>
+                </div>
+                <div class="flex justify-between font-semibold border-t pt-2">
+                  <span>Total:</span>
+                  <span id="desgloseEnterpriseTotal">$1600</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Configuración Custom (se muestra solo si se selecciona Custom) -->
+          <div id="customConfig" class="mt-6 p-4 bg-white rounded-lg border border-purple-200" style="display: none;">
+            <h6 class="font-semibold text-slate-800 mb-4">Configuración Personalizada</h6>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad de Conversaciones Mensuales</label>
+                <input type="number" id="customConversaciones" min="10000" value="10000" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <p class="text-xs text-slate-500 mt-1">Mínimo: 10,000 conversaciones</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad de Live Agents</label>
+                <input type="number" id="customLiveAgents" min="1" value="10" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <p class="text-xs text-slate-500 mt-1">Mínimo: 1 Live Agent</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad de OCR Mensual</label>
+                <input type="number" id="customOCR" min="0" value="0" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <p class="text-xs text-slate-500 mt-1">Mínimo: 0 OCR</p>
+              </div>
+            </div>
+            
+            <!-- Desglose del cálculo -->
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h7 class="font-semibold text-slate-700 mb-3 block">Desglose del Cálculo</h7>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span>Live Agents:</span>
+                  <span id="desgloseLiveAgents">10 × $30 = $300</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>LLM (Tokens):</span>
+                  <span id="desgloseLLM">200,000,000 × $0.0035 = $700</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>OCR:</span>
+                  <span id="desgloseOCR">0 × $0.008 = $0</span>
+                </div>
+                <div class="flex justify-between font-semibold border-t pt-2">
+                  <span>Total:</span>
+                  <span id="desgloseTotal">$1,300</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resumen y Total -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+          <h3 class="text-2xl font-bold mb-6">Resumen de Configuración</h3>
+          <div id="resumenConfiguracion">
+            <p class="text-slate-600">Selecciona un plan JB para ver el resumen</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="lg:col-span-1">
+        <div class="sticky top-24">
+          <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h3 class="text-2xl font-bold mb-6">Total de Cotización</h3>
+            
+            <div class="space-y-4 mb-6">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">JB Chatbot:</span>
+                <span id="precioJB" class="font-semibold">$0</span>
+              </div>
+              <div class="border-t pt-4">
+                <div class="flex justify-between items-center text-2xl font-bold">
+                  <span>Total:</span>
+                  <span id="total" class="price-display">$0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Configuración de costos unitarios para JB Chatbot
+    const costosUnitarios = {
+      valorLiveChat: 30,
+      valorToken: 0.00350,
+      llmPorConversacion: 10000,
+      margenCustom: 0.30, // 30% de margen
+      valorOCR: 0.0080 // $0.0080 por OCR
+    };
+
+    // Variables globales
+    let jbPlanSeleccionado = null; // Plan de JB seleccionado
+
+    // Inicializar la aplicación
+    function init() {
+      setupEventListeners();
+    }
+
+    // Configurar event listeners
+    function setupEventListeners() {
+      document.getElementById('btnGenerarPDF').addEventListener('click', generarPDF);
+      
+      // Event listeners para planes de JB
+      document.querySelectorAll('.jb-plan').forEach(plan => {
+        plan.addEventListener('click', function() {
+          const planType = this.dataset.plan;
+          seleccionarJBPlan(planType);
+        });
+      });
+    }
+
+    // Calcular precio del plan Enterprise de JB
+    function calcularPrecioEnterpriseJB() {
+      const ocrElement = document.getElementById('enterpriseOCR');
+      
+      if (!ocrElement) {
+        return 1600; // Valor por defecto si el elemento no está disponible
+      }
+      
+      const ocr = parseInt(ocrElement.value) || 0;
+      
+      // Plan base Enterprise (sin OCR)
+      const planBase = 1600;
+      
+      // Calcular costo de OCR
+      const costoOCR = ocr * costosUnitarios.valorOCR;
+      
+      // Sumar OCR al plan base
+      const total = planBase + costoOCR;
+      
+      return Math.round(total);
+    }
+
+    // Calcular precio del plan Custom de JB
+    function calcularPrecioCustomJB() {
+      const conversacionesElement = document.getElementById('customConversaciones');
+      const liveAgentsElement = document.getElementById('customLiveAgents');
+      const ocrElement = document.getElementById('customOCR');
+      
+      if (!conversacionesElement || !liveAgentsElement || !ocrElement) {
+        return 3000; // Valor por defecto si los elementos no están disponibles
+      }
+      
+      const conversaciones = parseInt(conversacionesElement.value) || 30000;
+      const liveAgents = parseInt(liveAgentsElement.value) || 10;
+      const ocr = parseInt(ocrElement.value) || 0;
+      
+      // Calcular costo de Live Agents
+      const costoLiveAgents = liveAgents * costosUnitarios.valorLiveChat;
+      
+      // Calcular costo de LLM (conversaciones × LLM por conversación × valor del token)
+      const cantidadLLM = conversaciones * costosUnitarios.llmPorConversacion/1000;
+      const costoLLM = cantidadLLM * costosUnitarios.valorToken;
+      
+      // Calcular costo de OCR
+      const costoOCR = ocr * costosUnitarios.valorOCR;
+      
+      // Sumar costos y aplicar margen del 30%
+      const costoBase = costoLiveAgents + costoLLM + costoOCR;
+      const precioConMargen = costoBase * (1 + costosUnitarios.margenCustom);
+      
+      // Asegurar precio mínimo de $3,000
+      const precioMinimo = 3000;
+      const precioFinal = Math.max(precioConMargen, precioMinimo);
+      
+      return Math.round(precioFinal);
+    }
+
+    // Configurar event listeners para configuración Enterprise
+    function configurarEventListenersEnterprise() {
+      const enterpriseOCR = document.getElementById('enterpriseOCR');
+      
+      if (enterpriseOCR) {
+        // Agregar event listener para OCR
+        enterpriseOCR.addEventListener('input', function() {
+          actualizarPrecioEnterprise();
+          actualizarResumen();
+          calcularTotal();
+        });
+      }
+    }
+
+    // Configurar event listeners para configuración custom
+    function configurarEventListenersCustom() {
+      const customConversaciones = document.getElementById('customConversaciones');
+      const customLiveAgents = document.getElementById('customLiveAgents');
+      const customOCR = document.getElementById('customOCR');
+      
+      if (customConversaciones && customLiveAgents && customOCR) {
+        // Agregar event listeners
+        customConversaciones.addEventListener('input', function() {
+          actualizarPrecioCustom();
+          actualizarResumen();
+          calcularTotal();
+        });
+        
+        customLiveAgents.addEventListener('input', function() {
+          actualizarPrecioCustom();
+          actualizarResumen();
+          calcularTotal();
+        });
+        
+        customOCR.addEventListener('input', function() {
+          actualizarPrecioCustom();
+          actualizarResumen();
+          calcularTotal();
+        });
+      }
+    }
+
+    // Seleccionar plan de JB
+    function seleccionarJBPlan(planType) {
+      jbPlanSeleccionado = planType;
+      
+      // Actualizar UI
+      document.querySelectorAll('.jb-plan').forEach(plan => {
+        plan.classList.remove('border-purple-500', 'bg-purple-50');
+        plan.classList.add('border-transparent');
+      });
+      
+      const planSeleccionado = document.querySelector(`[data-plan="${planType}"]`);
+      planSeleccionado.classList.remove('border-transparent');
+      planSeleccionado.classList.add('border-purple-500', 'bg-purple-50');
+      
+      // Mostrar configuración custom si es necesario
+      const customConfig = document.getElementById('customConfig');
+      const enterpriseConfig = document.getElementById('enterpriseConfig');
+      
+      if (planType === 'custom') {
+        customConfig.style.display = 'block';
+        enterpriseConfig.style.display = 'none';
+        configurarEventListenersCustom(); // Configurar event listeners cuando se muestre
+        actualizarPrecioCustom();
+      } else if (planType === 'enterprise') {
+        customConfig.style.display = 'none';
+        enterpriseConfig.style.display = 'block';
+        configurarEventListenersEnterprise(); // Configurar event listeners cuando se muestre
+        actualizarPrecioEnterprise();
+      } else {
+        customConfig.style.display = 'none';
+        enterpriseConfig.style.display = 'none';
+      }
+      
+      actualizarResumen();
+      calcularTotal();
+    }
+
+    // Actualizar desglose del cálculo Enterprise
+    function actualizarDesgloseEnterprise() {
+      const ocrElement = document.getElementById('enterpriseOCR');
+      
+      if (!ocrElement) {
+        return; // El elemento no está disponible aún
+      }
+      
+      const ocr = parseInt(ocrElement.value) || 0;
+      
+      // Calcular costos
+      const planBase = 1600; // Debe coincidir con calcularPrecioEnterpriseJB()
+      const costoOCR = ocr * costosUnitarios.valorOCR;
+      const total = planBase + costoOCR;
+      
+      // Actualizar elementos del desglose
+      const desgloseOCR = document.getElementById('desgloseEnterpriseOCR');
+      const desgloseTotal = document.getElementById('desgloseEnterpriseTotal');
+      
+      if (desgloseOCR) desgloseOCR.textContent = 
+        `${ocr.toLocaleString()} × $${costosUnitarios.valorOCR} = $${costoOCR.toLocaleString()}`;
+      
+      if (desgloseTotal) desgloseTotal.textContent = `$${total.toLocaleString()}`;
+    }
+
+    // Actualizar precio del plan Enterprise en la UI
+    function actualizarPrecioEnterprise() {
+      const precioEnterprise = calcularPrecioEnterpriseJB();
+      const enterprisePlanElement = document.querySelector('[data-plan="enterprise"]');
+      const precioElement = enterprisePlanElement.querySelector('.text-2xl');
+      precioElement.textContent = `$${precioEnterprise.toLocaleString()}`;
+      
+      // Actualizar también el desglose
+      actualizarDesgloseEnterprise();
+    }
+
+    // Actualizar desglose del cálculo Custom
+    function actualizarDesgloseCustom() {
+      const conversacionesElement = document.getElementById('customConversaciones');
+      const liveAgentsElement = document.getElementById('customLiveAgents');
+      const ocrElement = document.getElementById('customOCR');
+      
+      if (!conversacionesElement || !liveAgentsElement || !ocrElement) {
+        return; // Los elementos no están disponibles aún
+      }
+      
+      const conversaciones = parseInt(conversacionesElement.value) || 10000;
+      const liveAgents = parseInt(liveAgentsElement.value) || 10;
+      const ocr = parseInt(ocrElement.value) || 0;
+      
+      // Calcular costos
+      const costoLiveAgents = liveAgents * costosUnitarios.valorLiveChat;
+      const cantidadLLM = conversaciones * costosUnitarios.llmPorConversacion/1000;
+      const costoLLM = cantidadLLM * costosUnitarios.valorToken;
+      const costoOCR = ocr * costosUnitarios.valorOCR;
+      const costoBase = costoLiveAgents + costoLLM + costoOCR;
+      const margen = costoBase * costosUnitarios.margenCustom;
+      const precioConMargen = costoBase + margen;
+      
+      // Asegurar precio mínimo de $3,000
+      const precioMinimo = 3000;
+      const total = Math.max(precioConMargen, precioMinimo);
+      
+      // Actualizar elementos del desglose
+      const desgloseLiveAgents = document.getElementById('desgloseLiveAgents');
+      const desgloseLLM = document.getElementById('desgloseLLM');
+      const desgloseOCR = document.getElementById('desgloseOCR');
+      const desgloseCostoBase = document.getElementById('desgloseCostoBase');
+      const desgloseMargen = document.getElementById('desgloseMargen');
+      const desgloseTotal = document.getElementById('desgloseTotal');
+      
+      if (desgloseLiveAgents) desgloseLiveAgents.textContent = 
+        `${liveAgents} × $${costosUnitarios.valorLiveChat} = $${costoLiveAgents.toLocaleString()}`;
+      
+      if (desgloseLLM) desgloseLLM.textContent = 
+        `${cantidadLLM.toLocaleString()} × $${costosUnitarios.valorToken} /1000= $${costoLLM.toLocaleString()}`;
+      
+      if (desgloseOCR) desgloseOCR.textContent = 
+        `${ocr.toLocaleString()} × $${costosUnitarios.valorOCR} = $${costoOCR.toLocaleString()}`;
+      
+      if (desgloseTotal) desgloseTotal.textContent = `$${Math.round(total).toLocaleString()}`;
+    }
+
+    // Actualizar precio del plan Custom en la UI
+    function actualizarPrecioCustom() {
+      const precioCustom = calcularPrecioCustomJB();
+      const customPlanElement = document.querySelector('[data-plan="custom"]');
+      const precioElement = customPlanElement.querySelector('.text-2xl');
+      precioElement.textContent = `$${precioCustom.toLocaleString()}`;
+      
+      // Actualizar también el desglose
+      actualizarDesgloseCustom();
+    }
+
+    // Actualizar resumen
+    function actualizarResumen() {
+      const container = document.getElementById('resumenConfiguracion');
+      
+      let html = '<div class="space-y-4">';
+      
+      // Mostrar información de JB Chatbot si está seleccionado
+      if (jbPlanSeleccionado) {
+        let precioJB = 0;
+        let nombrePlanJB = '';
+        
+        if (jbPlanSeleccionado === 'custom') {
+          precioJB = calcularPrecioCustomJB();
+          nombrePlanJB = 'Custom';
+        } else if (jbPlanSeleccionado === 'enterprise') {
+          precioJB = calcularPrecioEnterpriseJB();
+          nombrePlanJB = 'Enterprise';
+        } else {
+          const preciosJB = {
+            'starter': 400,
+            'professional': 800
+          };
+          precioJB = preciosJB[jbPlanSeleccionado] || 0;
+          nombrePlanJB = jbPlanSeleccionado.charAt(0).toUpperCase() + jbPlanSeleccionado.slice(1);
+        }
+        
+        html += `
+          <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="text-3xl">🤖</div>
+                <div>
+                  <h4 class="text-xl font-bold">JB Chatbot - ${nombrePlanJB}</h4>
+                  <p class="opacity-90 text-sm">Solución de chatbot inteligente</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm opacity-80">Precio:</div>
+                <div class="text-2xl font-bold">$${precioJB.toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = '<p class="text-slate-600">Selecciona un plan JB para ver el resumen</p>';
+        return;
+      }
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    // Calcular total
+    function calcularTotal() {
+      let precioJB = 0;
+      
+      if (jbPlanSeleccionado) {
+        if (jbPlanSeleccionado === 'custom') {
+          precioJB = calcularPrecioCustomJB();
+        } else if (jbPlanSeleccionado === 'enterprise') {
+          precioJB = calcularPrecioEnterpriseJB();
+        } else {
+          const preciosJB = {
+            'starter': 400,
+            'professional': 800
+          };
+          precioJB = preciosJB[jbPlanSeleccionado] || 0;
+        }
+      }
+
+      document.getElementById('precioJB').textContent = `$${precioJB.toLocaleString()}`;
+      document.getElementById('total').textContent = `$${precioJB.toLocaleString()}`;
+    }
+
+    // Generar PDF
+    function generarPDF() {
+      if (!jbPlanSeleccionado) {
+        alert('Por favor selecciona un plan JB primero');
+        return;
+      }
+
+      // Crear un PDF simple usando window.print() ya que no tenemos jsPDF disponible
+      const ventanaImpresion = window.open('', '_blank');
+      const cliente = document.getElementById('cliente').value || 'Cliente';
+      
+      let precioJB = 0;
+      let nombrePlanJB = '';
+      
+      if (jbPlanSeleccionado === 'custom') {
+        precioJB = calcularPrecioCustomJB();
+        nombrePlanJB = 'Custom';
+      } else if (jbPlanSeleccionado === 'enterprise') {
+        precioJB = calcularPrecioEnterpriseJB();
+        nombrePlanJB = 'Enterprise';
+      } else {
+        const preciosJB = {
+          'starter': 400,
+          'professional': 800
+        };
+        precioJB = preciosJB[jbPlanSeleccionado] || 0;
+        nombrePlanJB = jbPlanSeleccionado.charAt(0).toUpperCase() + jbPlanSeleccionado.slice(1);
+      }
+      
+      ventanaImpresion.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Cotización JB Chatbot</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .plan { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .total { font-size: 24px; font-weight: bold; text-align: center; margin-top: 30px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Cotización JB Chatbot</h1>
+            <p><strong>Cliente:</strong> ${cliente}</p>
+            <p><strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>
+          </div>
+          
+          <div class="plan">
+            <h2>JB Chatbot - ${nombrePlanJB}</h2>
+            <p>Solución de chatbot inteligente</p>
+            <p><strong>Precio:</strong> $${precioJB.toLocaleString()}</p>
+          </div>
+          
+          <div class="total">
+            Total: $${precioJB.toLocaleString()}
+          </div>
+        </body>
+        </html>
+      `);
+      
+      ventanaImpresion.document.close();
+      ventanaImpresion.print();
+    }
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
