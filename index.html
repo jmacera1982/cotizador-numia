@@ -261,6 +261,30 @@
             </div>
           </div>
           
+          <!-- IVR -->
+          <div class="bg-white rounded-lg p-4 border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">☎️</span>
+                <span class="text-sm font-medium">IVR</span>
+              </div>
+              <div class="text-sm font-bold text-green-600" id="precioIVR">$0.0200/min</div>
+            </div>
+            <p class="text-xs text-slate-600 mb-2">Por minutos de llamada saliente</p>
+            <p class="text-xs text-orange-600 mb-3">⚠️ Precio varía según país</p>
+            <div class="flex items-center gap-2 mb-2">
+              <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                     data-addon="ivr">
+              <span class="text-sm text-slate-700">Incluir</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-600">Minutos:</label>
+              <input type="number" min="0" value="0" 
+                     class="w-20 text-center text-sm border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 cantidad-ivr" 
+                     data-addon="ivr" disabled />
+            </div>
+          </div>
+          
           </div>
         </div>
         
@@ -838,10 +862,9 @@
       {
         id: 'voz',
         nombre: 'Voz',
-        descripcion: 'Servicio de voz con opción entrante o saliente',
-        precio: 0.6, // Precio por hora
-        icono: '📞',
-        esVoz: true // Indica que esta característica es de voz y requiere configuración especial
+        descripcion: 'Servicio de voz SÓLO entrante',
+        precio: 40, // Precio por hora
+        icono: '📞' // Indica que esta característica es de voz y requiere configuración especial
       },
       {
         id: 'copilot',
@@ -929,6 +952,13 @@
       renderPlanes();
       initTenantAddons();
       setupEventListeners();
+      // Inicializar precio de IVR según país por defecto
+      const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
+      const precioMinutoIVR = paisSeleccionado === 'colombia' ? 0.19 : 0.0200;
+      const precioIVRElement = document.getElementById('precioIVR');
+      if (precioIVRElement) {
+        precioIVRElement.textContent = `$${precioMinutoIVR.toFixed(4)}/min`;
+      }
       calcularTotal(); // Inicializar los valores del total
     }
 
@@ -942,6 +972,7 @@
       tenantAddons.set('fila-virtual', false);
       tenantAddons.set('sso', false);
       tenantAddons.set('encuestas', false);
+      tenantAddons.set('ivr', 0); // IVR: cantidad de minutos
     }
 
     // Renderizar planes
@@ -1038,13 +1069,11 @@
                 const cantidadCaracteristica = caracteristicasSucursal.get(caracteristica.id) || 0;
                 const estaSeleccionada = cantidadCaracteristica > 0;
                 
+                // Verificar si IVR está habilitado (necesario para voz)
+                const ivrHabilitado = tenantAddons.get('ivr') > 0;
+                
                 // Ocultar el paquete de grabaciones
                 if (caracteristica.id === 'paquete-grabaciones') {
-                  return '';
-                }
-                
-                // Ocultar el addon de voz
-                if (caracteristica.id === 'voz') {
                   return '';
                 }
                 
@@ -1055,6 +1084,30 @@
                 // Si depende de videollamada y no está seleccionada, no mostrar
                 if (dependeDeVideollamada && !videollamadaSeleccionada) {
                   return '';
+                }
+                
+                // Verificar si voz requiere IVR habilitado
+                const requiereIVR = caracteristica.id === 'voz';
+                if (requiereIVR && !ivrHabilitado) {
+                  // Mostrar voz pero deshabilitada con mensaje
+                  return `
+                    <div class="bg-slate-50 rounded-lg p-3 border-2 border-gray-200 opacity-60">
+                      <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="text-lg">${caracteristica.icono}</span>
+                          <span class="text-sm font-medium">${caracteristica.nombre}</span>
+                          <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">Requiere IVR</span>
+                        </div>
+                        <div class="text-sm font-bold text-blue-600">$${caracteristica.precio.toLocaleString()}</div>
+                      </div>
+                      <p class="text-xs text-slate-600 mb-3">${caracteristica.descripcion}</p>
+                      <div class="flex items-center gap-2">
+                        <input type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
+                               data-plan="${planId}" data-caracteristica="${caracteristica.id}" disabled>
+                        <span class="text-sm text-slate-500">Habilita IVR a nivel compañía para activar</span>
+                      </div>
+                    </div>
+                  `;
                 }
                 
                 return `
@@ -1129,8 +1182,9 @@
                       <div class="space-y-3">
                         <div class="flex items-center gap-2">
                           <input type="checkbox" class="caracteristica-sucursal w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
-                                 data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${estaSeleccionada ? 'checked' : ''}>
+                                 data-plan="${planId}" data-caracteristica="${caracteristica.id}" ${estaSeleccionada ? 'checked' : ''} ${!ivrHabilitado ? 'disabled' : ''}>
                           <span class="text-sm text-slate-700">Incluir</span>
+                          ${!ivrHabilitado ? '<span class="text-xs text-orange-600">(Requiere IVR habilitado)</span>' : ''}
                         </div>
                         ${estaSeleccionada ? `
                           <div class="space-y-2">
@@ -1229,6 +1283,16 @@
           const planId = this.dataset.plan;
           const caracteristicaId = this.dataset.caracteristica;
           const data = sucursalesSeleccionadas.get(planId);
+          
+          // Verificar si voz requiere IVR habilitado
+          if (caracteristicaId === 'voz' && this.checked) {
+            const ivrHabilitado = tenantAddons.get('ivr') > 0;
+            if (!ivrHabilitado) {
+              this.checked = false;
+              alert('Debe habilitar IVR a nivel compañía para poder seleccionar Voz.');
+              return;
+            }
+          }
           
           if (this.checked) {
             data.caracteristicas.set(caracteristicaId, 1);
@@ -1753,6 +1817,14 @@
         });
         precioTenant += 10 * cantidadEncuestas;
       }
+      
+      // Calcular IVR: precio por minuto según país
+      const minutosIVR = tenantAddons.get('ivr') || 0;
+      if (minutosIVR > 0) {
+        const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
+        const precioMinutoIVR = paisSeleccionado === 'colombia' ? 0.19 : 0.0200;
+        precioTenant += precioMinutoIVR * minutosIVR;
+      }
 
       // Calcular valores de referencia
       const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
@@ -1832,7 +1904,8 @@
                        tenantAddons.get('citas') || 
                        tenantAddons.get('fila-virtual') || 
                        tenantAddons.get('sso') ||
-                       tenantAddons.get('encuestas');
+                       tenantAddons.get('encuestas') ||
+                       (tenantAddons.get('ivr') > 0);
       
       if (!hayAddons) {
         container.innerHTML = '';
@@ -1918,6 +1991,18 @@
         </div>`;
       }
       
+      // Mostrar IVR
+      const minutosIVR = tenantAddons.get('ivr') || 0;
+      if (minutosIVR > 0) {
+        const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
+        const precioMinutoIVR = paisSeleccionado === 'colombia' ? 0.19 : 0.0200;
+        const precioIVR = precioMinutoIVR * minutosIVR;
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>IVR (${minutosIVR} min):</span>
+          <span>$${precioIVR.toFixed(4)}</span>
+        </div>`;
+      }
+      
       html += `</div></div>`;
       
       container.innerHTML = html;
@@ -1935,7 +2020,17 @@
       // Event listener para el selector de país
       const paisSelect = document.getElementById('pais');
       if (paisSelect) {
-        paisSelect.addEventListener('change', calcularTotal);
+        paisSelect.addEventListener('change', function() {
+          // Actualizar precio de IVR según país
+          const paisSeleccionado = this.value;
+          const precioMinutoIVR = paisSeleccionado === 'colombia' ? 0.19 : 0.0200;
+          const precioIVRElement = document.getElementById('precioIVR');
+          if (precioIVRElement) {
+            precioIVRElement.textContent = `$${precioMinutoIVR.toFixed(4)}/min`;
+          }
+          calcularTotal();
+          actualizarResumen();
+        });
       }
 
       document.getElementById('btnGenerarPDF').addEventListener('click', generarPDF);
@@ -1960,12 +2055,43 @@
           if (addonId === 'sandbox') {
             // Para sandbox, usar la cantidad actual
             tenantAddons.set(addonId, cantidadSandbox);
+          } else if (addonId === 'ivr') {
+            // Para IVR, habilitar/deshabilitar campo de minutos
+            const minutosInput = document.querySelector('.cantidad-ivr[data-addon="ivr"]');
+            if (minutosInput) {
+              minutosInput.disabled = !isChecked;
+              if (!isChecked) {
+                minutosInput.value = 0;
+                tenantAddons.set('ivr', 0);
+                // Deshabilitar voz en todas las sucursales si se deshabilita IVR
+                sucursalesSeleccionadas.forEach((data, planId) => {
+                  if (data.caracteristicas && data.caracteristicas.get('voz') > 0) {
+                    data.caracteristicas.delete('voz');
+                    data.caracteristicas.delete('voz-tipo');
+                    data.caracteristicas.delete('voz-horas');
+                  }
+                });
+                renderSucursales(); // Re-renderizar para actualizar UI
+              }
+            }
+            tenantAddons.set(addonId, isChecked ? (parseInt(minutosInput?.value || '0') || 0) : 0);
           } else {
             // Para otros addons, usar true/false
             tenantAddons.set(addonId, isChecked);
           }
           
           calcularTotal();
+          actualizarResumen();
+        });
+      });
+      
+      // Event listener para minutos de IVR
+      document.querySelectorAll('.cantidad-ivr').forEach(input => {
+        input.addEventListener('input', function() {
+          const minutos = parseInt(this.value) || 0;
+          tenantAddons.set('ivr', minutos);
+          calcularTotal();
+          actualizarResumen();
         });
       });
       
