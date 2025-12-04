@@ -1744,11 +1744,23 @@
                       // Cabina virtual: precio fijo por sucursal
                       totalCaracteristica = caracteristica.precio * cantidad;
                       descripcionCalculo = '';
-                    } else if (caracteristica.dependeDeVideollamada) {
-                      // Para características que dependen de videollamada: calcular basado en horas de videollamada
+                    } else if (caracteristica.dependeDeVideollamada || ['analisis-sentimiento', 'transcripcion'].includes(caracteristica.id)) {
+                      // Para características que dependen de videollamada o grabación presencial
+                      // Prioridad: si hay videollamada, usar horas de videollamada; si no, usar horas de grabación presencial
                       const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
-                      totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
-                      descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
+                      const horasGrabacionPresencial = calcularHorasGrabacionPresencial(caracteristicasSucursal);
+                      
+                      // Si hay videollamada, usar esas horas; si no, usar horas de grabación presencial
+                      const horasACalcular = horasVideollamada > 0 ? horasVideollamada : horasGrabacionPresencial;
+                      
+                      if (horasACalcular > 0) {
+                        totalCaracteristica = caracteristica.precio * horasACalcular * cantidad;
+                        if (horasVideollamada > 0) {
+                          descripcionCalculo = `(${horasVideollamada} horas de videollamada)`;
+                        } else {
+                          descripcionCalculo = `(${horasGrabacionPresencial} horas de grabación presencial)`;
+                        }
+                      }
                     } else if (caracteristica.esVoz) {
                       // Para características de voz: calcular según tipo y horas
                       const tipoVoz = caracteristicasSucursal.get('voz-tipo') || 'entrante';
@@ -1811,6 +1823,13 @@
       return horasBase + paquetesVideollamada;
     }
 
+    // Función auxiliar para calcular horas de grabación presencial por sucursal
+    function calcularHorasGrabacionPresencial(caracteristicasSucursal) {
+      const horasVoz = caracteristicasSucursal.get('grabacion-voz-presencial') || 0;
+      const horasPantalla = caracteristicasSucursal.get('grabacion-pantalla-presencial') || 0;
+      return horasVoz + horasPantalla;
+    }
+
     // Calcular total
     function calcularTotal() {
       let precioBase = 0;
@@ -1859,10 +1878,18 @@
                 // Para paquetes normales: precio × cantidad_paquetes × cantidad_sucursales
                 precioCaracteristicas += caracteristica.precio * cantidadCaracteristica * cantidad;
               }
-            } else if (caracteristica.dependeDeVideollamada) {
-              // Para características que dependen de videollamada: calcular basado en horas de videollamada
+            } else if (caracteristica.dependeDeVideollamada || ['analisis-sentimiento', 'transcripcion'].includes(caracteristica.id)) {
+              // Para características que dependen de videollamada o grabación presencial
+              // Prioridad: si hay videollamada, usar horas de videollamada; si no, usar horas de grabación presencial
               const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
-              precioCaracteristicas += caracteristica.precio * horasVideollamada * cantidad;
+              const horasGrabacionPresencial = calcularHorasGrabacionPresencial(caracteristicasSucursal);
+              
+              // Si hay videollamada, usar esas horas; si no, usar horas de grabación presencial
+              const horasACalcular = horasVideollamada > 0 ? horasVideollamada : horasGrabacionPresencial;
+              
+              if (horasACalcular > 0) {
+                precioCaracteristicas += caracteristica.precio * horasACalcular * cantidad;
+              }
             } else if (caracteristica.esVoz) {
               // Para características de voz: calcular según tipo y horas
               const tipoVoz = caracteristicasSucursal.get('voz-tipo') || 'entrante';
@@ -2698,11 +2725,23 @@
                 totalCaracteristica = caracteristica.precio * cantidadCaracteristica * cantidad;
                 descripcionCalculo = ` (${cantidadCaracteristica} paquetes)`;
               }
-            } else if (caracteristica.dependeDeVideollamada) {
-              // Para características que dependen de videollamada: calcular basado en horas de videollamada
+            } else if (caracteristica.dependeDeVideollamada || ['analisis-sentimiento', 'transcripcion'].includes(caracteristica.id)) {
+              // Para características que dependen de videollamada o grabación presencial
+              // Prioridad: si hay videollamada, usar horas de videollamada; si no, usar horas de grabación presencial
               const horasVideollamada = calcularHorasVideollamada(caracteristicasSucursal);
-              totalCaracteristica = caracteristica.precio * horasVideollamada * cantidad;
-              descripcionCalculo = ` (${horasVideollamada} horas de videollamada)`;
+              const horasGrabacionPresencial = calcularHorasGrabacionPresencial(caracteristicasSucursal);
+              
+              // Si hay videollamada, usar esas horas; si no, usar horas de grabación presencial
+              const horasACalcular = horasVideollamada > 0 ? horasVideollamada : horasGrabacionPresencial;
+              
+              if (horasACalcular > 0) {
+                totalCaracteristica = caracteristica.precio * horasACalcular * cantidad;
+                if (horasVideollamada > 0) {
+                  descripcionCalculo = ` (${horasVideollamada} horas de videollamada)`;
+                } else {
+                  descripcionCalculo = ` (${horasGrabacionPresencial} horas de grabación presencial)`;
+                }
+              }
             } else {
               // Para características normales: precio × usuarios × cantidad_sucursales
               totalCaracteristica = caracteristica.precio * plan.usuarios * cantidad;
