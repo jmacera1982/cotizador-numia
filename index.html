@@ -270,7 +270,7 @@
               </div>
               <div class="text-sm font-bold text-green-600" id="precioIVR">$0.0200/min</div>
             </div>
-            <p class="text-xs text-slate-600 mb-2">Por minutos de llamada saliente</p>
+            <p class="text-xs text-slate-600 mb-2">Por minutos de llamada entrante</p>
             <p class="text-xs text-orange-600 mb-3">⚠️ Precio varía según país</p>
             <div class="flex items-center gap-2 mb-2">
               <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
@@ -282,6 +282,29 @@
               <input type="number" min="0" value="0" 
                      class="w-20 text-center text-sm border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 cantidad-ivr" 
                      data-addon="ivr" disabled />
+            </div>
+          </div>
+          
+          <!-- Avatar -->
+          <div class="bg-white rounded-lg p-4 border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">👤</span>
+                <span class="text-sm font-medium">Avatar</span>
+              </div>
+              <div class="text-sm font-bold text-green-600">$0.15/minuto</div>
+            </div>
+            <p class="text-xs text-slate-600 mb-2">Por minuto de conversación (se estiman 2 minutos por conversación)</p>
+            <div class="flex items-center gap-2 mb-2">
+              <input type="checkbox" class="tenant-addon w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500" 
+                     data-addon="avatar">
+              <span class="text-sm text-slate-700">Incluir</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-600">Conversaciones:</label>
+              <input type="number" min="0" value="0" 
+                     class="w-20 text-center text-sm border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 cantidad-avatar" 
+                     data-addon="avatar" disabled />
             </div>
           </div>
           
@@ -845,11 +868,9 @@
       {
         id: 'analisis-sentimiento',
         nombre: 'Análisis de Sentimiento',
-        descripcion: 'Análisis de sentimientos se calcula de forma automática contemplando las horas de videollamada por usuario',
+        descripcion: 'Análisis de sentimientos se calcula de forma automática contemplando las horas de videollamada o atención presencial por usuario',
         precio: 1.25,
-        icono: '😊',
-        dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
-      },
+        icono: '😊'      },
       {
         id: 'pantallas',
         nombre: 'Pantallas Digitales',
@@ -892,10 +913,10 @@
       {
         id: 'transcripcion',
         nombre: 'Transcripción',
-        descripcion: 'Las horas de transcripción se calculan de forma automática contemplando las horas de videollamada por usuario',
+        descripcion: 'Las horas de transcripción se calculan de forma automática contemplando las horas de videollamada o atención presencial por usuario',
         precio: 0.5,
-        icono: '📝',
-        dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
+        icono: '📝'
+     
       },
       {
         id: 'cabina-virtual',
@@ -905,6 +926,24 @@
         icono: '🏢',
         esCantidad: true, // Indica que esta característica requiere cantidad
                dependeDeVideollamada: true // Indica que depende de videollamada para el cálculo
+      },
+      {
+        id: 'grabacion-voz-presencial',
+        nombre: 'Grabación Voz Presencial',
+        descripcion: 'Grabación de voz para atención presencial (por hora)',
+        precio: 0.2,
+        icono: '🎤',
+        esCantidad: true, // Indica que esta característica requiere cantidad (horas)
+        dependeDePresencial: true // Indica que depende de atención presencial
+      },
+      {
+        id: 'grabacion-pantalla-presencial',
+        nombre: 'Grabación Pantalla Presencial',
+        descripcion: 'Grabación de pantalla para atención presencial (por hora)',
+        precio: 1,
+        icono: '🖥️',
+        esCantidad: true, // Indica que esta característica requiere cantidad (horas)
+        dependeDePresencial: true // Indica que depende de atención presencial
       }
     ];
 
@@ -973,6 +1012,7 @@
       tenantAddons.set('sso', false);
       tenantAddons.set('encuestas', false);
       tenantAddons.set('ivr', 0); // IVR: cantidad de minutos
+      tenantAddons.set('avatar', 0); // Avatar: cantidad de conversaciones
     }
 
     // Renderizar planes
@@ -1064,32 +1104,37 @@
           <!-- Características específicas para este tipo de sucursal -->
           <div class="border-t pt-4">
             <h6 class="text-sm font-semibold text-slate-700 mb-3">Características para ${plan.nombre}:</h6>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="caracteristicas-${planId}">
-              ${caracteristicas.map(caracteristica => {
+            ${(() => {
+              // Función auxiliar para renderizar una característica
+              const renderCaracteristica = (caracteristica) => {
                 const cantidadCaracteristica = caracteristicasSucursal.get(caracteristica.id) || 0;
                 const estaSeleccionada = cantidadCaracteristica > 0;
-                
-                // Verificar si IVR está habilitado (necesario para voz)
                 const ivrHabilitado = tenantAddons.get('ivr') > 0;
                 
-                // Ocultar el paquete de grabaciones
                 if (caracteristica.id === 'paquete-grabaciones') {
                   return '';
                 }
                 
-                // Verificar si esta característica depende de videollamada
-                const dependeDeVideollamada = ['cobrowse', 'analisis-sentimiento', 'cabina-virtual'].includes(caracteristica.id);
+                const dependeDeVideollamada = caracteristica.dependeDeVideollamada || ['cobrowse', 'cabina-virtual', 'paquete-videollamada'].includes(caracteristica.id);
+                const dependeDePresencial = caracteristica.dependeDePresencial || ['grabacion-voz-presencial', 'grabacion-pantalla-presencial'].includes(caracteristica.id);
+                // Análisis de Sentimiento y Transcripción funcionan con videollamada O presencial
+                const dependeDeVideollamadaOPresencial = ['analisis-sentimiento', 'transcripcion'].includes(caracteristica.id);
                 const videollamadaSeleccionada = caracteristicasSucursal.get('videollamada') > 0;
+                const presencialSeleccionada = caracteristicasSucursal.get('atencion-presencial') > 0;
                 
-                // Si depende de videollamada y no está seleccionada, no mostrar
                 if (dependeDeVideollamada && !videollamadaSeleccionada) {
                   return '';
                 }
+                if (dependeDePresencial && !presencialSeleccionada) {
+                  return '';
+                }
+                // Para analisis-sentimiento y transcripcion, mostrar si hay videollamada O presencial
+                if (dependeDeVideollamadaOPresencial && !videollamadaSeleccionada && !presencialSeleccionada) {
+                  return '';
+                }
                 
-                // Verificar si voz requiere IVR habilitado
                 const requiereIVR = caracteristica.id === 'voz';
                 if (requiereIVR && !ivrHabilitado) {
-                  // Mostrar voz pero deshabilitada con mensaje
                   return `
                     <div class="bg-slate-50 rounded-lg p-3 border-2 border-gray-200 opacity-60">
                       <div class="flex items-center justify-between mb-2">
@@ -1111,12 +1156,14 @@
                 }
                 
                 return `
-                  <div class="bg-slate-50 rounded-lg p-3 border-2 ${estaSeleccionada ? 'border-blue-300 bg-blue-50' : 'border-transparent'} ${dependeDeVideollamada ? 'opacity-75' : ''}">
+                  <div class="bg-slate-50 rounded-lg p-3 border-2 ${estaSeleccionada ? 'border-blue-300 bg-blue-50' : 'border-transparent'} ${dependeDeVideollamada || dependeDePresencial || dependeDeVideollamadaOPresencial ? 'opacity-75' : ''}">
                     <div class="flex items-center justify-between mb-2">
                       <div class="flex items-center gap-2">
                         <span class="text-lg">${caracteristica.icono}</span>
                         <span class="text-sm font-medium">${caracteristica.nombre}</span>
                         ${dependeDeVideollamada ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Requiere Videollamadas</span>' : ''}
+                        ${dependeDePresencial ? '<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">Requiere Atención Presencial</span>' : ''}
+                        ${dependeDeVideollamadaOPresencial ? '<span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">Requiere Videollamadas o Presencial</span>' : ''}
                       </div>
                       <div class="text-sm font-bold text-blue-600">$${caracteristica.precio.toLocaleString()}</div>
                     </div>
@@ -1146,7 +1193,7 @@
                                   data-plan="${planId}" data-caracteristica="${caracteristica.id}">
                             <span class="text-slate-600 text-xs font-bold">+</span>
                           </button>
-                          <span class="text-xs text-slate-500 ml-2">cantidad</span>
+                          <span class="text-xs text-slate-500 ml-2">${dependeDePresencial ? 'horas' : 'cantidad'}</span>
                         </div>
                         ${caracteristica.cantidadMinimaGratuita ? `
                           <div class="text-xs text-slate-500">
@@ -1214,8 +1261,73 @@
                     `}
                   </div>
                 `;
-              }).join('')}
-            </div>
+              };
+              
+              // Separar características en grupos
+              const atencionPresencial = caracteristicas.find(c => c.id === 'atencion-presencial');
+              const videollamada = caracteristicas.find(c => c.id === 'videollamada');
+              const relacionadasPresencial = caracteristicas.filter(c => 
+                c.dependeDePresencial || ['grabacion-voz-presencial', 'grabacion-pantalla-presencial'].includes(c.id)
+              );
+              const relacionadasVideollamada = caracteristicas.filter(c => 
+                c.dependeDeVideollamada || ['cobrowse', 'cabina-virtual', 'paquete-videollamada'].includes(c.id)
+              );
+              // Análisis de Sentimiento y Transcripción aparecen en ambas secciones
+              const relacionadasVideollamadaOPresencial = caracteristicas.filter(c => 
+                ['analisis-sentimiento', 'transcripcion'].includes(c.id)
+              );
+              const otrasCaracteristicas = caracteristicas.filter(c => 
+                c.id !== 'atencion-presencial' && 
+                c.id !== 'videollamada' && 
+                !relacionadasPresencial.includes(c) && 
+                !relacionadasVideollamada.includes(c) &&
+                !relacionadasVideollamadaOPresencial.includes(c) &&
+                c.id !== 'paquete-grabaciones'
+              );
+              
+              const presencialSeleccionada = caracteristicasSucursal.get('atencion-presencial') > 0;
+              const videollamadaSeleccionada = caracteristicasSucursal.get('videollamada') > 0;
+              
+              let html = '<div class="space-y-6">';
+              
+              // Sección de Atención Presencial
+              if (atencionPresencial) {
+                html += `
+                  <div class="border-l-4 border-green-500 pl-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      ${renderCaracteristica(atencionPresencial)}
+                      ${presencialSeleccionada ? relacionadasPresencial.map(c => renderCaracteristica(c)).join('') : ''}
+                      ${presencialSeleccionada ? relacionadasVideollamadaOPresencial.map(c => renderCaracteristica(c)).join('') : ''}
+                    </div>
+                  </div>
+                `;
+              }
+              
+              // Sección de Videollamadas
+              if (videollamada) {
+                html += `
+                  <div class="border-l-4 border-blue-500 pl-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      ${renderCaracteristica(videollamada)}
+                      ${videollamadaSeleccionada ? relacionadasVideollamada.map(c => renderCaracteristica(c)).join('') : ''}
+                      ${videollamadaSeleccionada ? relacionadasVideollamadaOPresencial.map(c => renderCaracteristica(c)).join('') : ''}
+                    </div>
+                  </div>
+                `;
+              }
+              
+              // Otras características
+              if (otrasCaracteristicas.length > 0) {
+                html += `
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${otrasCaracteristicas.map(c => renderCaracteristica(c)).join('')}
+                  </div>
+                `;
+              }
+              
+              html += '</div>';
+              return html;
+            })()}
           </div>
         `;
         
@@ -1314,8 +1426,25 @@
             // Si se desmarca videollamada, eliminar características dependientes
             if (caracteristicaId === 'videollamada') {
               data.caracteristicas.delete('cobrowse');
-              data.caracteristicas.delete('analisis-sentimiento');
               data.caracteristicas.delete('cabina-virtual');
+              // Solo eliminar analisis-sentimiento y transcripcion si atención presencial NO está seleccionada
+              const presencialSeleccionada = data.caracteristicas.get('atencion-presencial') > 0;
+              if (!presencialSeleccionada) {
+                data.caracteristicas.delete('analisis-sentimiento');
+                data.caracteristicas.delete('transcripcion');
+              }
+            }
+            
+            // Si se desmarca atención presencial, eliminar características dependientes
+            if (caracteristicaId === 'atencion-presencial') {
+              data.caracteristicas.delete('grabacion-voz-presencial');
+              data.caracteristicas.delete('grabacion-pantalla-presencial');
+              // Solo eliminar analisis-sentimiento y transcripcion si videollamada NO está seleccionada
+              const videollamadaSeleccionada = data.caracteristicas.get('videollamada') > 0;
+              if (!videollamadaSeleccionada) {
+                data.caracteristicas.delete('analisis-sentimiento');
+                data.caracteristicas.delete('transcripcion');
+              }
             }
           }
           
@@ -1590,6 +1719,10 @@
                         } else {
                           descripcionCalculo = `(${cantidadCaracteristica} incluidas sin costo)`;
                         }
+                      } else if (caracteristica.dependeDePresencial) {
+                        // Para grabaciones presenciales: mostrar horas
+                        descripcionCalculo = `(${cantidadCaracteristica} horas)`;
+                        cantidadACobrar = cantidadCaracteristica;
                       } else {
                         descripcionCalculo = `(${cantidadCaracteristica} pantallas)`;
                       }
@@ -1825,6 +1958,13 @@
         const precioMinutoIVR = paisSeleccionado === 'colombia' ? 0.19 : 0.0200;
         precioTenant += precioMinutoIVR * minutosIVR;
       }
+      
+      // Calcular Avatar: precio por conversación
+      const conversacionesAvatar = tenantAddons.get('avatar') || 0;
+      if (conversacionesAvatar > 0) {
+        const precioPorConversacion = 0.15;
+        precioTenant += precioPorConversacion * conversacionesAvatar;
+      }
 
       // Calcular valores de referencia
       const paisSeleccionado = document.getElementById('pais')?.value || 'otro';
@@ -2003,6 +2143,17 @@
         </div>`;
       }
       
+      // Mostrar Avatar
+      const conversacionesAvatar = tenantAddons.get('avatar') || 0;
+      if (conversacionesAvatar > 0) {
+        const precioPorConversacion = 0.15;
+        const precioAvatar = precioPorConversacion * conversacionesAvatar;
+        html += `<div class="flex justify-between items-center text-slate-600">
+          <span>Avatar (${conversacionesAvatar} conversaciones):</span>
+          <span>$${precioAvatar.toFixed(2)}</span>
+        </div>`;
+      }
+      
       html += `</div></div>`;
       
       container.innerHTML = html;
@@ -2075,6 +2226,17 @@
               }
             }
             tenantAddons.set(addonId, isChecked ? (parseInt(minutosInput?.value || '0') || 0) : 0);
+          } else if (addonId === 'avatar') {
+            // Para Avatar, habilitar/deshabilitar campo de conversaciones
+            const conversacionesInput = document.querySelector('.cantidad-avatar[data-addon="avatar"]');
+            if (conversacionesInput) {
+              conversacionesInput.disabled = !isChecked;
+              if (!isChecked) {
+                conversacionesInput.value = 0;
+                tenantAddons.set('avatar', 0);
+              }
+            }
+            tenantAddons.set(addonId, isChecked ? (parseInt(conversacionesInput?.value || '0') || 0) : 0);
           } else {
             // Para otros addons, usar true/false
             tenantAddons.set(addonId, isChecked);
@@ -2090,6 +2252,16 @@
         input.addEventListener('input', function() {
           const minutos = parseInt(this.value) || 0;
           tenantAddons.set('ivr', minutos);
+          calcularTotal();
+          actualizarResumen();
+        });
+      });
+      
+      // Event listener para conversaciones de Avatar
+      document.querySelectorAll('.cantidad-avatar').forEach(input => {
+        input.addEventListener('input', function() {
+          const conversaciones = parseInt(this.value) || 0;
+          tenantAddons.set('avatar', conversaciones);
           calcularTotal();
           actualizarResumen();
         });
